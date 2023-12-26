@@ -15,11 +15,7 @@ public class Conecta4 {
     int numeroPartidas = 0;
     Random random = new Random();
     String SQL;
-<<<<<<< HEAD
-    public Conecta4 (Connection con){ // con, ya esta conectado a la base de datos (conectaServlet.java)
-=======
     public Conecta4 (Connection con){ // con ya esta conectado a la base de datos (conectaServlet.java)
->>>>>>> ProyectoStgin/master
         try {
             this.con = con;
             this.st = con.createStatement();
@@ -126,8 +122,5 @@ public class Conecta4 {
 
 
     }
-<<<<<<< HEAD
 }
-=======
-    }
->>>>>>> ProyectoStgin/master
+
