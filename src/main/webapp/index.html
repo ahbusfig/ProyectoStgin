@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Conecta4 - Bienvenido</title>
+    <title>Bienvenido a Conecta4</title>
     <style>
         body {
-            font-family: 'Arial', sans-serif;
-            background-color: #282c34;
-            color: white;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(to bottom, #f4f4f4 0%, #e0e0e0 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -16,52 +15,36 @@
             height: 100vh;
             margin: 0;
         }
-        .title {
-            margin-bottom: 20px;
-            color: #61dafb;
+        .welcome-container {
+            text-align: center;
         }
         .button {
-            background-color: #61dafb;
-            color: #282c34;
-            padding: 15px 30px;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
             margin: 10px;
             border: none;
-            border-radius: 25px;
+            border-radius: 5px;
             cursor: pointer;
             font-size: 18px;
-            transition: all 0.3s;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-            text-transform: uppercase;
-            font-weight: bold;
+            transition: background-color 0.3s;
+            text-decoration: none; /* Remueve subrayado de enlaces */
+        }
+        .button.new-player {
+            background-color: #28a745;
         }
         .button:hover {
-            background-color: #4fa1c0;
-            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.3);
-        }
-        .button:focus {
-            outline: none;
-        }
-        .container {
-            text-align: center;
+            opacity: 0.9;
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <h1 class="title">Bienvenido a Conecta4</h1>
-    <!-- Formulario para crear partida -->
-    <form action="CrearPartida" method="post">
-        <button type="submit" class="button">Crear Partida</button>
-    </form>
-    <!-- Formulario para unirse a partida -->
-    <form action="UnirsePartida" method="post">
-        <button type="submit" class="button">Unirse a Partida</button>
-    </form>
-    <!-- Formulario para ver estadísticas -->
-    <form action="VerEstadisticas" method="post">
-        <button type="submit" class="button">Estadísticas</button>
-    </form>
+<div class="welcome-container">
+    <h1>Bienvenido a Conecta4</h1>
+    <!-- Botón para ir a la página de login -->
+    <a href="login.html" class="button">Login</a>
+    <!-- Botón para ir a la página de registro -->
+    <a href="registro.html" class="button new-player">Nuevo Jugador</a>
 </div>
 </body>
 </html>
-
