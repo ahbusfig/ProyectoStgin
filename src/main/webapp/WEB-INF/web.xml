@@ -4,4 +4,12 @@
 
 <web-app>
   <display-name>Archetype Created Web Application</display-name>
+  <servlet>
+    <servlet-name>RegistrarServlet</servlet-name>
+    <servlet-class>juego.servlets.RegistrarServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RegistrarServlet</servlet-name>
+    <url-pattern>/RegistrarServlet</url-pattern>
+  </servlet-mapping>
 </web-app>

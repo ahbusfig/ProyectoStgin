@@ -6,54 +6,44 @@ import java.io.*;
 import java.sql.*;
 
 public class RegistrarServlet extends HttpServlet {
-    // El método doPost recibe los datos del formulario y los guarda en la base de datos
-    @Override
-    public void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        Connection con = null ;
-        PreparedStatement pst = null;
-        res.setContentType("text/html");
-        PrintWriter out = res.getWriter();
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setContentType("text/html"); // nos dice que la respuesta va a ser en HTML
+        PrintWriter out = response.getWriter(); // para escribir la respuesta
 
-        // Capturar los datos del formulario
-        String username = req.getParameter("Nombre");
-        String email = req.getParameter("email");
-        int age = Integer.parseInt(req.getParameter("edad"));
-        String password = req.getParameter("password"); // En un caso real, deberías cifrar esto antes de guardarlo
+        // Recoger los datos del formulario
+        String nombre = request.getParameter("usuario");
+        String password = request.getParameter("password");
+        int edad = Integer.parseInt(request.getParameter("edad")); // el parseInt es para convertir el int a String
+        String email = request.getParameter("email");
 
         try {
-            // Cargar el driver y conectarse a la base de datos
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/conecta4", "root", "");
+            // Cargar el driver JDBC y establecer conexión
+            Class.forName("org.mariadb.jdbc.Driver"); // el driver es para conectarse a la base de datos (en este caso MariaDB)
+            Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "");
 
-            // Crear la sentencia SQL para insertar el nuevo usuario
-            String sql = "INSERT INTO usuarios (username, email, age, password) VALUES (?, ?, ?, ?)";
-            pst = con.prepareStatement(sql);
-            pst.setString(1, username);
-            pst.setString(2, email);
-            pst.setInt(3, age);
-            pst.setString(4, password);
 
-            // Ejecutar la inserción
-            int rowCount = pst.executeUpdate();
-            if (rowCount > 0) {
-                out.println("<p>Registro exitoso!</p>");
-                // Redirigir o enviar a una página de éxito
-            } else {
-                out.println("<p>Error al registrar usuario.</p>");
-                // Manejar el error adecuadamente
+            // Crear la consulta SQL
+            String query = "INSERT INTO jugadores (Nombre, email, edad, password) VALUES (?, ?, ?, ?)";
+            PreparedStatement ps = con.prepareStatement(query); // el prepareStatement es para preparar la consulta
+
+            // Establecer los parámetros y ejecutar la actualización
+            ps.setString(1, nombre);
+            ps.setString(2, email);
+            ps.setInt(3, edad);
+            ps.setString(4, password);
+            int i = ps.executeUpdate();
+
+            if(i > 0) {
+                out.println("Registro exitoso!");
             }
-        } catch (ClassNotFoundException | SQLException e) {
-            out.println("<p>Error: " + e.getMessage() + "</p>");
-            // Manejar la excepción adecuadamente
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            out.println("Error en el registro: " + e.getMessage());
         } finally {
-            // Cerrar recursos
-            try {
-                if (pst != null) pst.close();
-                if (con != null) con.close();
-                if (out != null) out.close();
-            } catch (SQLException ex) {
-                out.println("<p>Error al cerrar recursos: " + ex.getMessage() + "</p>");
-            }
+            // Cerrar el flujo de salida de datos hacia el cliente
+            out.close();
         }
     }
+
 }
