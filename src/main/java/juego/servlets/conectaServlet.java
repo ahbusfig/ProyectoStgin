@@ -17,7 +17,7 @@ public class conectaServlet extends HttpServlet {
         PrintWriter out;
 
         try{
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("com.mysql.cj.jdbc.Driver");
         }
         catch(Exception e){
             System.out.println(e);
