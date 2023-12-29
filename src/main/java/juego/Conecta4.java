@@ -26,7 +26,7 @@ public class Conecta4 {
         }
     }
 
-    public void crearTablero(int partida) {
+    private void crearTablero(int partida) {
         try {
             con.setAutoCommit(false);
             String SQL = "INSERT INTO tablero VALUES (?, 6, 6, ?);";
@@ -55,7 +55,7 @@ public class Conecta4 {
         }
     }
 
-    public void crearPartida(int jugador1, int jugador2) {
+    private void crearPartida(int jugador1, int jugador2) {
         try {
             con.setAutoCommit(false);
             String SQL = "INSERT INTO partidas VALUES (?, ?, ?, ?);";
@@ -80,6 +80,57 @@ public class Conecta4 {
         }
     }
 
+
+    public void crearPartidaEsperar(int IdJugador1) throws SQLException {
+
+        con.setAutoCommit(false);
+        boolean vacio = true;
+        ResultSet rs2 = null;
+            while (vacio) {
+                SQL = "SELECT * FROM esperandoconexion WHERE IdPartida = ? ";
+                try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+                    preparedStatement.setInt(1, numeroPartidas);
+                    rs2 = preparedStatement.executeQuery();
+
+                    // Mueve el cursor a la primera fila
+                    if (rs2.next()) {
+                        vacio = false;
+
+                        int jugador2 = rs2.getInt("IdJugador");
+                        crearPartida(IdJugador1, jugador2);
+                        SQL = "DELETE FROM esperandoconexion WHERE IdPartida = ?;";
+                        PreparedStatement preparedStatement2 = con.prepareStatement(SQL);
+                        preparedStatement2.setInt(1, numeroPartidas);
+                        preparedStatement2.executeUpdate();
+                        break;
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+                con.setAutoCommit(true);
+            }
+
+    }
+
+    public void unirsePartida(int IdPartida, int IdJugador2){ // para que el jugador2 se una a la partida creada
+
+        try {
+            con.setAutoCommit(false);
+            String SQL = "INSERT INTO esperandoconexion VALUES (?, ?);";
+            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+                preparedStatement.setInt(1, IdJugador2);
+                preparedStatement.setInt(2, IdPartida);
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+
+            //con.commit();
+            con.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public int consultarFicha(int idTablero, int fila, int columna) {
 
@@ -114,42 +165,51 @@ public class Conecta4 {
     }
 
 
-    public void insertarFicha(int idTablero, int fila, int columna, int jugador) { // cuando jugador es 0 es jugador1 y si es 1 será jugador2
-        try{
+    public void insertarFicha(int idTablero, int fila, int columna, int jugador) {
+        try {
             con.setAutoCommit(false);
 
-            if(consultarFicha(idTablero,fila,columna) == 0) {
+            if (consultarFicha(idTablero, fila, columna) == 0) {
+                for (int i = fila; i < 6; i++) { // para que las fichas empiecen desde la última fila
+                    if (consultarFicha(idTablero, i, columna) == 0 ) {
+                            fila = i; // comprobamos si esta ocupado, sino está ocupado se asigna esa fila
+                    }
 
-                for (int i = fila; i < 6; i++) { // para que las fichas empiecen desde la ultima fila
-                    if (consultarFicha(idTablero, i, columna) == 0 && (i != 0)) {
-                        fila = i-1; // si no está ocupado
-                    }
-                    else if(consultarFicha(idTablero, i, columna) == 0 && (i == 0)){
-                        fila = 0;
-                    }
                     else{
-                        break;
+                        break; // si esta ocupado se salta el break y se queda en la fila donde no esta ocupada (fila anterior)
                     }
                 }
+                System.out.println(fila);
 
-                if (consultarFicha(idTablero, fila, columna) == 0) {
+                if (consultarFicha(idTablero, fila, columna) == 0) { //para actualizar el valor y el estado en la base de datos
+                    String updateSQL;
                     if (jugador == 0) {
-                        SQL = "UPDATE detallestablero SET OcupadoJugador1 = 1;";
-                        st.executeUpdate(SQL);
+                        updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
                     } else if (jugador == 1) {
-                        SQL = "UPDATE detallestablero SET OcupadoJugador2 = 1;";
-                        st.executeUpdate(SQL);
+                        updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+                    } else {
+                        throw new IllegalArgumentException("El jugador debe ser 0 o 1.");
+                    }
+
+                    try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
+                        preparedStatement.setInt(1, idTablero);
+                        preparedStatement.setInt(2, fila);
+                        preparedStatement.setInt(3, columna);
+                        preparedStatement.executeUpdate();
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
+
             con.commit();
             con.setAutoCommit(true);
-
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
 
 
     }
-}
+
 
