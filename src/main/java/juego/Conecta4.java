@@ -86,29 +86,29 @@ public class Conecta4 {
         con.setAutoCommit(false);
         boolean vacio = true;
         ResultSet rs2 = null;
-        while (vacio) {
-            SQL = "SELECT * FROM esperandoconexion WHERE IdPartida = ? ";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, numeroPartidas);
-                rs2 = preparedStatement.executeQuery();
+            while (vacio) {
+                SQL = "SELECT * FROM esperandoconexion WHERE IdPartida = ? ";
+                try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+                    preparedStatement.setInt(1, numeroPartidas);
+                    rs2 = preparedStatement.executeQuery();
 
-                // Mueve el cursor a la primera fila
-                if (rs2.next()) {
-                    vacio = false;
+                    // Mueve el cursor a la primera fila
+                    if (rs2.next()) {
+                        vacio = false;
 
-                    int jugador2 = rs2.getInt("IdJugador");
-                    crearPartida(IdJugador1, jugador2);
-                    SQL = "DELETE FROM esperandoconexion WHERE IdPartida = ?;";
-                    PreparedStatement preparedStatement2 = con.prepareStatement(SQL);
-                    preparedStatement2.setInt(1, numeroPartidas);
-                    preparedStatement2.executeUpdate();
-                    break;
+                        int jugador2 = rs2.getInt("IdJugador");
+                        crearPartida(IdJugador1, jugador2);
+                        SQL = "DELETE FROM esperandoconexion WHERE IdPartida = ?;";
+                        PreparedStatement preparedStatement2 = con.prepareStatement(SQL);
+                        preparedStatement2.setInt(1, numeroPartidas);
+                        preparedStatement2.executeUpdate();
+                        break;
+                    }
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+                con.setAutoCommit(true);
             }
-            con.setAutoCommit(true);
-        }
 
     }
 
@@ -134,33 +134,33 @@ public class Conecta4 {
 
     public int consultarFicha(int idTablero, int fila, int columna) {
 
-        SQL = "SELECT OcupadoJugador1, OcupadoJugador2 FROM detallestablero WHERE IdTablero=? AND Fila=? AND Columna=?";
-        try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-            preparedStatement.setInt(1, idTablero);
-            preparedStatement.setInt(2, fila);
-            preparedStatement.setInt(3, columna);
+            SQL = "SELECT OcupadoJugador1, OcupadoJugador2 FROM detallestablero WHERE IdTablero=? AND Fila=? AND Columna=?";
+            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+                preparedStatement.setInt(1, idTablero);
+                preparedStatement.setInt(2, fila);
+                preparedStatement.setInt(3, columna);
 
-            rs = preparedStatement.executeQuery();
+                rs = preparedStatement.executeQuery();
 
-            // Mueve el cursor a la primera fila
-            if (rs.next()) {
-                int ocupado1 = rs.getInt("OcupadoJugador1");
-                int ocupado2 = rs.getInt("OcupadoJugador2");
+                // Mueve el cursor a la primera fila
+                if (rs.next()) {
+                    int ocupado1 = rs.getInt("OcupadoJugador1");
+                    int ocupado2 = rs.getInt("OcupadoJugador2");
 
-                if (!(ocupado1 == 1 && ocupado2 == 1)) {
-                    if (ocupado1 == 1) {
-                        return 1;
-                    } else if (ocupado2 == 1) {
-                        return 2;
-                    } else {
-                        return 0;
+                    if (!(ocupado1 == 1 && ocupado2 == 1)) {
+                        if (ocupado1 == 1) {
+                            return 1;
+                        } else if (ocupado2 == 1) {
+                            return 2;
+                        } else {
+                            return 0;
+                        }
                     }
                 }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-        return -1;
+            return -1;
 
     }
 
@@ -172,7 +172,7 @@ public class Conecta4 {
             if (consultarFicha(idTablero, fila, columna) == 0) {
                 for (int i = fila; i < 6; i++) { // para que las fichas empiecen desde la última fila
                     if (consultarFicha(idTablero, i, columna) == 0 ) {
-                        fila = i; // comprobamos si esta ocupado, sino está ocupado se asigna esa fila
+                            fila = i; // comprobamos si esta ocupado, sino está ocupado se asigna esa fila
                     }
 
                     else{
@@ -210,5 +210,6 @@ public class Conecta4 {
     }
 
 
-}
+    }
+
 
