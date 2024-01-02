@@ -1,0 +1,51 @@
+package juego.servlets;
+
+import javax.servlet.*;
+import javax.servlet.http.*;
+import java.sql.*;
+import java.io.*;
+
+public class CrearPartidaServlet extends HttpServlet {
+    public void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        // Establecer la conexión a la base de datos
+        Connection con;
+        Statement st;
+        ResultSet rs;
+        String SQL, codigoPartida;
+        PrintWriter out = res.getWriter(); // para escribir la respuesta
+
+        try {
+            // Obtener la conexión a la base de datos (ajusta la URL, usuario y contraseña según tu configuración)
+            Class.forName("org.mariadb.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "");
+            st = con.createStatement();
+
+            // Generar codigo de 6 digitos aleatorio en variable codigoPartida
+            // GENERAR CODIGO DE PARTIDA
+            codigoPartida = String.valueOf((int) (Math.random() * 900000) + 100000);
+            // Almacena el código de partida en la sesión
+            req.getSession().setAttribute("codigoPartida", codigoPartida);
+            // Obtener el id del usuario de la sesión
+
+             int usuario1 =  (int) req.getSession().getAttribute("idJugador");
+
+            // Lógica para insertar el código de partida,jugador1 y turno en la base de datos
+            SQL = "INSERT INTO partidas (Jugador1, Jugador2, CodigoPartida, Turno) VALUES ('" + usuario1 + "', NULL, '" + codigoPartida + "', '1')";
+            st.executeUpdate(SQL);
+
+            // Redirigir al usuario a la página de esperandoConexion -> para que espere a que se una otro jugador
+            res.sendRedirect("esperandoConexion.jsp");
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            out.println("Error en el servidor.");
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } finally {
+            out.close();
+            }
+        }
+    }
+
+
