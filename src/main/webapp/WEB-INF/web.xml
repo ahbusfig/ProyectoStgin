@@ -3,13 +3,43 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>Archetype Created Web Application</display-name>
-  <servlet>
-    <servlet-name>RegistrarServlet</servlet-name>
-    <servlet-class>juego.servlets.RegistrarServlet</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>RegistrarServlet</servlet-name>
-    <url-pattern>/RegistrarServlet</url-pattern>
-  </servlet-mapping>
+    <display-name>Archetype Created Web Application</display-name>
+
+
+    <!-- Servlet para registrar un usuario -->
+    <servlet>
+        <servlet-name>RegistrarServlet</servlet-name>
+        <servlet-class>juego.servlets.RegistrarServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>RegistrarServlet</servlet-name>
+        <url-pattern>/RegistrarServlet</url-pattern>
+    </servlet-mapping>
+    <!-- Servlet para login de un usuario -->
+    <servlet>
+        <servlet-name>LoginServlet</servlet-name>
+        <servlet-class>juego.servlets.LoginServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LoginServlet</servlet-name>
+        <url-pattern>/LoginServlet</url-pattern>
+    </servlet-mapping>
+    <!-- Servlet para CrearPartidaServlet de un usuario -->
+    <servlet>
+        <servlet-name>CrearPartidaServlet</servlet-name>
+        <servlet-class>juego.servlets.CrearPartidaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CrearPartidaServlet</servlet-name>
+        <url-pattern>/CrearPartidaServlet</url-pattern>
+    </servlet-mapping>
+    <!-- Servlet para UnirsePartidaServlet de un usuario -->
+    <servlet>
+        <servlet-name>UnirsePartidaServlet</servlet-name>
+        <servlet-class>juego.servlets.UnirsePartidaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UnirsePartidaServlet</servlet-name>
+        <url-pattern>/UnirsePartidaServlet</url-pattern>
+    </servlet-mapping>
 </web-app>

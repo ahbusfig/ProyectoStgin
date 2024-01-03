@@ -33,9 +33,7 @@ public class RegistrarServlet extends HttpServlet {
             ps.setString(4, password);
             int i = ps.executeUpdate();
 
-            if(i > 0) {
-                out.println("Registro exitoso!");
-            }
+            response.sendRedirect("JuegoOpciones.html"); // redirige a la página de opciones del juego
 
         } catch(Exception e) {
             e.printStackTrace();
