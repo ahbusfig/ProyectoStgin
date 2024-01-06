@@ -34,7 +34,7 @@ public class LoginServlet extends HttpServlet {
                 //El usuario existe y la contraseña es correcta
                 HttpSession session = request.getSession(); // crea una sesión
                 session.setAttribute("usuario", nombre); // guarda el nombre del usuario en la sesión
-                session.setAttribute("idJugador", rs.getInt("idJugador")); // guarda el id del usuario en la sesión
+                session.setAttribute("idJugador", rs.getInt("IdJugador")); // guarda el id del usuario en la sesión
                 st.close();
                 con.close();
                 response.sendRedirect("JuegoOpciones.html");

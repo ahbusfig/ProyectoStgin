@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>Esperando Jugador - Conecta4</title>
+    <!-- Recarga la página cada 10 segundos para verificar si el segundo jugador se ha unido -->
+    <meta http-equiv="refresh" content="10;url=esperarConexionServlet">
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -41,26 +43,33 @@
         .button:focus {
             outline: none;
         }
-        .container {
-            text-align: center;
-        }
     </style>
 </head>
 <body>
-    <h1>Esperando al segundo jugador...</h1>
-    <%
-        // Recuperar el código de partida de la sesión
-        String codigoPartida = (String) session.getAttribute("codigoPartida");
-        if (codigoPartida != null) {
-            out.println("<p>Código de Partida: " + codigoPartida + "</p>");
-        } else {
-            out.println("<p>Error: No se encontró el código de partida.</p>");
-        }
-
-        //QUIERO COMPARTIR EL CODIGO CON OTRA PERSONA, COMO SI FUERA UNA OPCION
-        //PARA QUE SE UNA A LA PARTIDA
-    %>
-    <!-- Boton para volver a la página de inicio -->
-    <a href="index.jsp">Volver a Inicio</a>
+<h1>Esperando al segundo jugador...</h1>
+<%
+    // Recuperar el código de partida de la sesión
+    String codigoPartida = (String) session.getAttribute("codigoPartida");
+    if (codigoPartida != null) {
+        out.println("<p>Código de Partida: <span id='codigoPartida'>" + codigoPartida + "</span></p>");
+%>
+<button onclick="copiarCodigo()">Copiar Código</button>
+<script> // Función para copiar el código de partida al portapapeles
+    function copiarCodigo() {
+        var codigo = document.getElementById('codigoPartida').innerText; // Obtener el código de partida
+        navigator.clipboard.writeText(codigo).then(function() { // Copiar el código al portapapeles
+            alert('Código copiado al portapapeles: ' + codigo); // Mostrar mensaje de éxito
+        }, function(err) {
+            alert('No se pudo copiar el código: ', err); // Mostrar mensaje de error
+        });
+    }
+</script>
+<%
+    } else {
+        out.println("<p>Error: No se encontró el código de partida.</p>");
+    }
+%>
+<!-- Boton para volver a la página de inicio -->
+<a href="index.html" class="button">Volver a Inicio</a>
 </body>
 </html>

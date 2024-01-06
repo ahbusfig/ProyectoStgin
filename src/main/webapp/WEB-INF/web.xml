@@ -4,8 +4,6 @@
 
 <web-app>
     <display-name>Archetype Created Web Application</display-name>
-
-
     <!-- Servlet para registrar un usuario -->
     <servlet>
         <servlet-name>RegistrarServlet</servlet-name>
@@ -41,5 +39,14 @@
     <servlet-mapping>
         <servlet-name>UnirsePartidaServlet</servlet-name>
         <url-pattern>/UnirsePartidaServlet</url-pattern>
+    </servlet-mapping>
+    <!-- Servlet para esperarConexionServlet-->
+    <servlet>
+        <servlet-name>esperarConexionServlet</servlet-name>
+        <servlet-class>juego.servlets.esperarConexionServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>esperarConexionServlet</servlet-name>
+        <url-pattern>/esperarConexionServlet</url-pattern>
     </servlet-mapping>
 </web-app>

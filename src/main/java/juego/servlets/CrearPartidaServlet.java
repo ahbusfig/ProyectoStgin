@@ -27,25 +27,38 @@ public class CrearPartidaServlet extends HttpServlet {
             req.getSession().setAttribute("codigoPartida", codigoPartida);
             // Obtener el id del usuario de la sesión
 
-             int usuario1 =  (int) req.getSession().getAttribute("idJugador");
+            int usuario1 =  (int) req.getSession().getAttribute("idJugador");
 
             // Lógica para insertar el código de partida,jugador1 y turno en la base de datos
             SQL = "INSERT INTO partidas (Jugador1, Jugador2, CodigoPartida, Turno) VALUES ('" + usuario1 + "', NULL, '" + codigoPartida + "', '1')";
             st.executeUpdate(SQL);
 
+            //  Insertar en la base de datos -> esperandoconexion -> el id de la partida y el id del jugador1
+            SQL = "INSERT INTO esperandoconexion (IdPartida, IdJugador) VALUES ((SELECT IdPartida FROM partidas WHERE CodigoPartida = '" + codigoPartida + "'), '" + usuario1 + "')";
+            st.executeUpdate(SQL);
+
+            // Almacenar el id de la partida en la sesión
+            // Suponiendo que CodigoPartida es único y acabas de insertar la partida
+            SQL = "SELECT IdPartida FROM partidas WHERE CodigoPartida = '" + codigoPartida + "'";
+            rs = st.executeQuery(SQL);
+            if(rs.next()) {
+                int idPartida = rs.getInt("IdPartida");
+                req.getSession().setAttribute("idPartida", idPartida);
+            }
             // Redirigir al usuario a la página de esperandoConexion -> para que espere a que se una otro jugador
             res.sendRedirect("esperandoConexion.jsp");
 
 
+
         } catch (SQLException e) {
             e.printStackTrace();
-            out.println("Error en el servidor.");
+            out.println("Error con el SQL en el servidor.");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } finally {
             out.close();
-            }
         }
     }
+}
 
 

@@ -25,7 +25,12 @@ public class UnirsePartidaServlet extends HttpServlet{
             // Obtener el id del usuario de la sesión
             int usuario2 = (int) req.getSession().getAttribute("idJugador");
 
-            // Lógica para insertar el código de partida y jugador2 en la base de datos
+            // Lógica para insertar jugador2 en la base de datos con el código de partida obtenido
+            SQL = "UPDATE partidas SET Jugador2 = '" + usuario2 + "' WHERE CodigoPartida = '" + codigoPartida + "'";
+            st.executeUpdate(SQL);
+
+            // redirigir al usuario a la página de juego
+            res.sendRedirect("conecta4Juego.jsp");
 
         } catch (SQLException e) {
             e.printStackTrace();

@@ -23,7 +23,7 @@ public class RegistrarServlet extends HttpServlet {
 
 
             // Crear la consulta SQL
-            String query = "INSERT INTO jugadores (Nombre, Email, Edad, Password) VALUES (?, ?, ?, ?)";
+            String query = "INSERT INTO jugadores (Nombre, email, edad, password) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = con.prepareStatement(query); // el prepareStatement es para preparar la consulta
 
             // Establecer los parámetros y ejecutar la actualización
