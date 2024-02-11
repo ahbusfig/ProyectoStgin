@@ -27,140 +27,167 @@ public class Conecta4 {
         }
     }
 
-    public void crearTablero(int partida) {
-        try {
-            con.setAutoCommit(false);
-            String SQL = "INSERT INTO tablero VALUES (?, 6, 6, ?);";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, numeroTablero);
-                preparedStatement.setInt(2, partida);
-                preparedStatement.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            for (int i = 0; i < 6; i++) { // para filas
-                for (int j = 0; j < 6; j++) { // para columnas
-
-                    SQL = "INSERT INTO detallestablero VALUES (" + numeroTablero + ",0,0," + i + "," + j + ");"; // pongo 0 para poner que no está ocupado (ver tabla)
-                    st.executeUpdate(SQL);
-                }
-            }
-
-            con.commit();
-            con.setAutoCommit(true);
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public int IdTableroActual(){ // para conseguir una ID libre para crear una nueva partida
-        try {
-            SQL = "SELECT IdTablero FROM tablero ORDER BY IdTablero DESC LIMIT 1";
-            rs = st.executeQuery(SQL);
-            if(rs.next()){
-                return rs.getInt("IdTablero") + 1;
-            }
-            return 0;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public int IdPartidaActual(){ // para conseguir una ID libre para crear una nueva partida
-        try {
-            SQL = "SELECT IdPartida FROM partidas ORDER BY IdPartida DESC LIMIT 1";
-            rs = st.executeQuery(SQL);
-            if(rs.next()){
-                return rs.getInt("IdPartida") + 1;
-            }
-            return 0;
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void crearPartida(int jugador1, int jugador2) {
-        try {
-            con.setAutoCommit(false);
-            String SQL = "INSERT INTO partidas VALUES (?, ?, ?, ?);";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, numeroPartidas);
-                preparedStatement.setInt(2, jugador1);
-                preparedStatement.setInt(3, jugador2);
-                preparedStatement.setInt(4, random.nextInt(2));
-                preparedStatement.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            // Para crear partidas
-            crearTablero(numeroPartidas);
-
-            //con.commit();
-            con.setAutoCommit(true);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public int crearPartidaEsperar(int IdJugador1) throws SQLException {
-
+    public void crearTablero(int idPartida) throws SQLException {
+        // Comenzar una transacción
         con.setAutoCommit(false);
-        boolean vacio = true;
-        ResultSet rs2 = null;
-        numeroPartidas = IdPartidaActual();
-        numeroTablero = IdTableroActual();
-        System.out.println(numeroPartidas);
-        System.out.println(numeroTablero);
-
-        while (vacio) {
-            SQL = "SELECT * FROM esperandoconexion WHERE IdPartida = ? ";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, numeroPartidas);
-                rs2 = preparedStatement.executeQuery();
-
-                // Mueve el cursor a la primera fila
-                if (rs2.next()) {
-                    vacio = false;
-
-                    int jugador2 = rs2.getInt("IdJugador");
-                    crearPartida(IdJugador1, jugador2);
-                    SQL = "DELETE FROM esperandoconexion WHERE IdPartida = ?;";
-                    PreparedStatement preparedStatement2 = con.prepareStatement(SQL);
-                    preparedStatement2.setInt(1, numeroPartidas);
-                    preparedStatement2.executeUpdate();
-                    break;
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            con.setAutoCommit(true);
-        }
-        return numeroPartidas;
-    }
-
-    public void unirsePartida(int IdPartida, int IdJugador2){ // para que el jugador2 se una a la partida creada
 
         try {
-            con.setAutoCommit(false);
-            String SQL = "INSERT INTO esperandoconexion VALUES (?, ?);";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, IdJugador2);
-                preparedStatement.setInt(2, IdPartida);
-                preparedStatement.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
+            // Comprobar si ya existe un tablero para la idPartida
+            String checkSQL = "SELECT IdTablero FROM tablero WHERE IdPartida = ?";
+            PreparedStatement checkStmt = con.prepareStatement(checkSQL);
+            checkStmt.setInt(1, idPartida);
+            ResultSet rs = checkStmt.executeQuery();
+
+            // Si no existe, insertar un nuevo tablero
+            if(!rs.next()) {
+                String insertSQL = "INSERT INTO tablero (Columnas, Filas, IdPartida) VALUES (?, ?, ?)";
+                PreparedStatement insertStmt = con.prepareStatement(insertSQL, Statement.RETURN_GENERATED_KEYS);
+                insertStmt.setInt(1, 6); // Suponiendo que siempre son 6 columnas
+                insertStmt.setInt(2, 6); // Suponiendo que siempre son 6 filas
+                insertStmt.setInt(3, idPartida);
+                insertStmt.executeUpdate();
+
+                // Obtener el IdTablero generado
+                ResultSet generatedKeys = insertStmt.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    int newIdTablero = generatedKeys.getInt(1);
+
+                    // Insertar detalles del tablero (detallestablero) con el nuevo IdTablero
+                    for (int i = 0; i < 6; i++) { // para filas
+                        for (int j = 0; j < 6; j++) { // para columnas
+                            String detailsSQL = "INSERT INTO detallestablero (IdTablero, OcupadoJugador1, OcupadoJugador2, Fila, Columna) VALUES (?, 0, 0, ?, ?);";
+                            PreparedStatement detailsStmt = con.prepareStatement(detailsSQL);
+                            detailsStmt.setInt(1, newIdTablero);
+                            detailsStmt.setInt(2, i);
+                            detailsStmt.setInt(3, j);
+                            detailsStmt.executeUpdate();
+                        }
+                    }
+                }
             }
 
-            //con.commit();
-            con.setAutoCommit(true);
+            // Si todo ha ido bien, hacer commit de la transacción
+            con.commit();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            // Si hay un error, hacer rollback de la transacción
+            con.rollback();
+            throw e; // Lanzar la excepción para manejarla en un nivel superior
+        } finally {
+            // Restablecer el modo de auto commit
+            con.setAutoCommit(true);
         }
     }
+
+
+
+
+
+//    public int IdTableroActual(){ // para conseguir una ID libre para crear una nueva partida
+//        try {
+//            SQL = "SELECT IdTablero FROM tablero ORDER BY IdTablero DESC LIMIT 1";
+//            rs = st.executeQuery(SQL);
+//            if(rs.next()){
+//                return rs.getInt("IdTablero") + 1;
+//            }
+//            return 0;
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+//    public int IdPartidaActual(){ // para conseguir una ID libre para crear una nueva partida
+//        try {
+//            SQL = "SELECT IdPartida FROM partidas ORDER BY IdPartida DESC LIMIT 1";
+//            rs = st.executeQuery(SQL);
+//            if(rs.next()){
+//                return rs.getInt("IdPartida") + 1;
+//            }
+//            return 0;
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+//    private void crearPartida(int jugador1, int jugador2) {
+//        try {
+//            con.setAutoCommit(false);
+//            String SQL = "INSERT INTO partidas VALUES (?, ?, ?, ?);";
+//            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+//                preparedStatement.setInt(1, numeroPartidas);
+//                preparedStatement.setInt(2, jugador1);
+//                preparedStatement.setInt(3, jugador2);
+//                preparedStatement.setInt(4, random.nextInt(2));
+//                preparedStatement.executeUpdate();
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            // Para crear partidas
+//            crearTablero(numeroPartidas);
+//
+//            //con.commit();
+//            con.setAutoCommit(true);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
+
+//    public int crearPartidaEsperar(int IdJugador1) throws SQLException {
+//
+//        con.setAutoCommit(false);
+//        boolean vacio = true;
+//        ResultSet rs2 = null;
+//        numeroPartidas = IdPartidaActual();
+//        numeroTablero = IdTableroActual();
+//        System.out.println(numeroPartidas);
+//        System.out.println(numeroTablero);
+//
+//        while (vacio) {
+//            SQL = "SELECT * FROM esperandoconexion WHERE IdPartida = ? ";
+//            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+//                preparedStatement.setInt(1, numeroPartidas);
+//                rs2 = preparedStatement.executeQuery();
+//
+//                // Mueve el cursor a la primera fila
+//                if (rs2.next()) {
+//                    vacio = false;
+//
+//                    int jugador2 = rs2.getInt("IdJugador");
+//                    crearPartida(IdJugador1, jugador2);
+//                    SQL = "DELETE FROM esperandoconexion WHERE IdPartida = ?;";
+//                    PreparedStatement preparedStatement2 = con.prepareStatement(SQL);
+//                    preparedStatement2.setInt(1, numeroPartidas);
+//                    preparedStatement2.executeUpdate();
+//                    break;
+//                }
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//            con.setAutoCommit(true);
+//        }
+//        return numeroPartidas;
+//    }
+
+//    public void unirsePartida(int IdPartida, int IdJugador2){ // para que el jugador2 se una a la partida creada
+//
+//        try {
+//            con.setAutoCommit(false);
+//            String SQL = "INSERT INTO esperandoconexion VALUES (?, ?);";
+//            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+//                preparedStatement.setInt(1, IdJugador2);
+//                preparedStatement.setInt(2, IdPartida);
+//                preparedStatement.executeUpdate();
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+//            //con.commit();
+//            con.setAutoCommit(true);
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
     public int consultarFicha(int idTablero, int fila, int columna) {
 

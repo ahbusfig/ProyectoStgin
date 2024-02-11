@@ -29,8 +29,14 @@ public class CrearPartidaServlet extends HttpServlet {
 
             int usuario1 =  (int) req.getSession().getAttribute("idJugador");
 
+            // Aleatorizar el turno para que bien empieze el jugador 1 o el jugador 2
+            // Lógica para insertar el código de partida, jugador1 y turno en la base de datos
+            // Generar un número aleatorio (0 o 1) para representar el turno inicial
+            int Turno = (int) (Math.random() * 2);
+
             // Lógica para insertar el código de partida,jugador1 y turno en la base de datos
-            SQL = "INSERT INTO partidas (Jugador1, Jugador2, CodigoPartida, Turno) VALUES ('" + usuario1 + "', NULL, '" + codigoPartida + "', '1')";
+            SQL = "INSERT INTO partidas (Jugador1, Jugador2, CodigoPartida, Turno) VALUES ('" + usuario1 + "', NULL, '" + codigoPartida + "', " + Turno + ")";
+
             st.executeUpdate(SQL);
 
             //  Insertar en la base de datos -> esperandoconexion -> el id de la partida y el id del jugador1

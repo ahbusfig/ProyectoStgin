@@ -38,8 +38,8 @@ import java.sql.SQLException;
 
             System.out.println(prueba.consultarFicha(0,2,5));
              */
-
-                prueba.unirsePartida(1,1);
+//
+//                prueba.unirsePartida(1,1);
 
             } catch (SQLException e) {
                 throw new RuntimeException(e);

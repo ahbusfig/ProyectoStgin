@@ -4,8 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Esperando Jugador - Conecta4</title>
-    <!-- Recarga la página cada 10 segundos para verificar si el segundo jugador se ha unido -->
-    <meta http-equiv="refresh" content="10;url=esperarConexionServlet">
+
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -44,11 +43,35 @@
             outline: none;
         }
     </style>
+    <script>
+        // Función para sondear el estado cada 3 segundos
+        function verificarSegundoJugador() {
+            fetch('esperarConexionServlet') // Url del servlet
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'found') {
+                        // Si se encuentra el segundo jugador, redirige a la página del juego
+                        window.location.href = 'conecta4Juego.jsp';
+                    } else if (data.status === 'error') {
+                        // Manejar el error como prefieras
+                        alert('Ocurrió un error al verificar el estado del juego.');
+                    }
+                    // Si el estado es 'waiting', no hace nada y esperará a la próxima verificación
+                })
+                .catch(error => {
+                    console.error('Error al realizar la solicitud', error);
+                });
+        }
+
+        // Iniciar el sondeo cuando la página cargue
+        window.onload = function() {
+            setInterval(verificarSegundoJugador, 3000); // Verifica el estado cada 3 segundos
+        };
+    </script>
 </head>
 <body>
 <h1>Esperando al segundo jugador...</h1>
 <%
-    // Recuperar el código de partida de la sesión
     String codigoPartida = (String) session.getAttribute("codigoPartida");
     if (codigoPartida != null) {
         out.println("<p>Código de Partida: <span id='codigoPartida'>" + codigoPartida + "</span></p>");
@@ -56,11 +79,11 @@
 <button onclick="copiarCodigo()">Copiar Código</button>
 <script> // Función para copiar el código de partida al portapapeles
     function copiarCodigo() {
-        var codigo = document.getElementById('codigoPartida').innerText; // Obtener el código de partida
-        navigator.clipboard.writeText(codigo).then(function() { // Copiar el código al portapapeles
-            alert('Código copiado al portapapeles: ' + codigo); // Mostrar mensaje de éxito
+        var codigo = document.getElementById('codigoPartida').innerText;
+        navigator.clipboard.writeText(codigo).then(function() {
+            alert('Código copiado al portapapeles: ' + codigo);
         }, function(err) {
-            alert('No se pudo copiar el código: ', err); // Mostrar mensaje de error
+            alert('No se pudo copiar el código: ', err);
         });
     }
 </script>
@@ -69,7 +92,6 @@
         out.println("<p>Error: No se encontró el código de partida.</p>");
     }
 %>
-<!-- Boton para volver a la página de inicio -->
 <a href="index.html" class="button">Volver a Inicio</a>
 </body>
 </html>
