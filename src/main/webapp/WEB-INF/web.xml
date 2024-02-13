@@ -49,4 +49,14 @@
         <servlet-name>esperarConexionServlet</servlet-name>
         <url-pattern>/esperarConexionServlet</url-pattern>
     </servlet-mapping>
+    <!-- Servlet para insertarFicha-->
+    <servlet>
+        <servlet-name>InsertarFichaServlet</servlet-name>
+        <servlet-class>juego.servlets.InsertarFichaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>InsertarFichaServlet</servlet-name>
+        <url-pattern>/InsertarFichaServlet</url-pattern>
+    </servlet-mapping>
+
 </web-app>

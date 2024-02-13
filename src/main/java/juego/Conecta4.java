@@ -17,6 +17,8 @@ public class Conecta4 {
     Random random = new Random();
     String SQL;
 
+    private int idTablero;
+
     public Conecta4(Connection con) { // con ya esta conectado a la base de datos (conectaServlet.java)
         try {
             this.con = con;
@@ -52,6 +54,8 @@ public class Conecta4 {
                 if (generatedKeys.next()) {
                     int newIdTablero = generatedKeys.getInt(1);
 
+                    // Actualizar el idTablero
+                    this.idTablero = newIdTablero;
                     // Insertar detalles del tablero (detallestablero) con el nuevo IdTablero
                     for (int i = 0; i < 6; i++) { // para filas
                         for (int j = 0; j < 6; j++) { // para columnas
@@ -64,6 +68,7 @@ public class Conecta4 {
                         }
                     }
                 }
+
             }
 
             // Si todo ha ido bien, hacer commit de la transacción
@@ -226,36 +231,23 @@ public class Conecta4 {
         try {
             con.setAutoCommit(false);
 
-            if (consultarFicha(idTablero, fila, columna) == 0) {
-                for (int i = fila; i < 6; i++) { // para que las fichas empiecen desde la última fila
-                    if (consultarFicha(idTablero, i, columna) == 0 ) {
-                        fila = i; // comprobamos si esta ocupado, sino está ocupado se asigna esa fila
-                    }
-
-                    else{
-                        break; // si esta ocupado se salta el break y se queda en la fila donde no esta ocupada (fila anterior)
-                    }
+            if (consultarFicha(idTablero, fila, columna) == 0) { //para actualizar el valor y el estado en la base de datos
+                String updateSQL;
+                if (jugador == 0) {
+                    updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+                } else if (jugador == 1) {
+                    updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+                } else {
+                    throw new IllegalArgumentException("El jugador debe ser 0 o 1.");
                 }
-                System.out.println(fila);
 
-                if (consultarFicha(idTablero, fila, columna) == 0) { //para actualizar el valor y el estado en la base de datos
-                    String updateSQL;
-                    if (jugador == 0) {
-                        updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                    } else if (jugador == 1) {
-                        updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                    } else {
-                        throw new IllegalArgumentException("El jugador debe ser 0 o 1.");
-                    }
-
-                    try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
-                        preparedStatement.setInt(1, idTablero);
-                        preparedStatement.setInt(2, fila);
-                        preparedStatement.setInt(3, columna);
-                        preparedStatement.executeUpdate();
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
+                try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
+                    preparedStatement.setInt(1, idTablero);
+                    preparedStatement.setInt(2, fila);
+                    preparedStatement.setInt(3, columna);
+                    preparedStatement.executeUpdate();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
                 }
             }
 
@@ -395,5 +387,8 @@ public class Conecta4 {
             }
         }
         return puntuacion;
+    }
+    public int getIdTablero() {
+        return this.idTablero;
     }
 }

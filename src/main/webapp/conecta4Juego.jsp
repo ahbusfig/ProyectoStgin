@@ -19,9 +19,13 @@
             margin: 20px; /* Ajusta el margen del contenedor según tus necesidades */
         }
 
+        #contenedor-juego form {
+            display: inline-block; /* Hace que los formularios se muestren en línea */
+        }
+
         #tablero {
             display: grid;
-            grid-template-columns: repeat(7, 70px);
+            grid-template-columns: repeat(6, 70px);
             grid-gap: 10px;
         }
 
@@ -51,63 +55,68 @@
     int idPartida = (int) request.getSession().getAttribute("idPartida");
     // Obtener el id del jugador de la sesión
     int idJugador = (int) request.getSession().getAttribute("idJugador");
-    // Obtener el id del tablero de la sesión
-    Integer idTablero = (Integer) request.getSession().getAttribute("idTablero");
-
 
     // Instanciar el juego y crear el tablero
     Conecta4 juego = new Conecta4(con);
     juego.crearTablero(idPartida);
+    // Guardar el id del tablero en la sesión
+    request.getSession().setAttribute("idTablero", juego.getIdTablero());
 
 } catch (ClassNotFoundException | SQLException e) {
     e.printStackTrace();
 }
 %>
+<%
+    int idTablero = (int) request.getSession().getAttribute("idTablero");
+    int idJugador = (int) request.getSession().getAttribute("idJugador");
 
-<%-- Aquí va el código JavaScript para crear el tablero y manejar las fichas --%>
-
+%>
 <div id="contenedor-juego">
     <h1>Conecta4 - Juego</h1>
-    <div id="tablero">
+    <%
+        int turnoActual = (int) request.getSession().getAttribute("Turno");
+        if (turnoActual == 0) { // Si es el turno del jugador 1
+            for (int j = 0; j < 6; j++) {
+
+    %>
+    <form action="InsertarFichaServlet" method="post">
+        <input type="hidden" name="columna" value="<%= j %>">
+        <input type="submit" value="Columna <%=j+1%>">
+    </form>
+    <%
+            }
+        }
+        else if (turnoActual == 1) { // Si es el turno del jugador 2
+            for (int j = 0; j < 6; j++) {
+    %>
+
+    <form action="InsertarFichaServlet" method="post">
+        <input type="hidden" name="columna" value="<%= j %>">
+        <input type="submit" value="Columna <%=j+1%>">
+    </form>
+
+    <%
+        }
+    }
+        else {
+            out.println("No es tu turno");
+        }
+    %>
+
+    <div id="tablero" data-idTablero="<%=idTablero%>" data-jugador="<%=idJugador%>">
         <% for (int i = 0; i < 6; i++) { %>
-        <% for (int j = 0; j < 7; j++) {
-            Integer idTablero = (Integer) request.getSession().getAttribute("idTablero");
-            int idJugador = (int) request.getSession().getAttribute("idJugador");
-        %>
-        <div class="celda" id="celda_<%=i%>_<%=j%>" onclick="insertarFicha(<%=idTablero%>, <%=i%>, <%=j%>, <%=idJugador%>)"></div>
+        <% for (int j = 0; j < 6; j++) { %>
+        <div class="celda" id="celda_<%=i%>_<%=j%>"
+             data-fila="<%=i%>"
+             data-columna="<%=j%>"
+             data-idTablero="<%=idTablero%>"
+             data-jugador="<%=idJugador%>"></div>
         <% } %>
         <% } %>
     </div>
+
+    <p id="turnoJugador">Turno del Jugador: <%= (int) request.getSession().getAttribute("Turno") == 0 ? '1' : '2' %></p>
 </div>
-<%-- Aquí va el código JavaScript para crear el tablero y manejar las fichas --%>
-<script>
-    function insertarFicha(idTablero, fila, columna, idJugador) {
-        $.ajax({
-            type: "POST",
-            url: "InsertarFichaServlet",
-            data: {
-                idTablero: idTablero,
-                fila: fila,
-                columna: columna,
-                idJugador: idJugador
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Cambia el color de la casilla según el jugador
-                    var color = response.jugador == 1 ? "red" : "yellow";
-                    var cell = document.getElementById("celda_" + fila + "_" + columna);
-                    cell.style.backgroundColor = color;
-                } else {
-                    // Registra un error si la inserción de la ficha falló
-                    console.error("Error al insertar la ficha.");
-                }
-            },
-            error: function(error) {
-                // Registra el error si la petición AJAX falló
-                console.error(error);
-            }
-        });
-    }
-</script>
+
 </body>
 </html>
