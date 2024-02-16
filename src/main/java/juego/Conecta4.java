@@ -52,10 +52,9 @@ public class Conecta4 {
                 // Obtener el IdTablero generado
                 ResultSet generatedKeys = insertStmt.getGeneratedKeys();
                 if (generatedKeys.next()) {
+                    // Obtener el IdTablero generado
                     int newIdTablero = generatedKeys.getInt(1);
 
-                    // Actualizar el idTablero
-                    this.idTablero = newIdTablero;
                     // Insertar detalles del tablero (detallestablero) con el nuevo IdTablero
                     for (int i = 0; i < 6; i++) { // para filas
                         for (int j = 0; j < 6; j++) { // para columnas
@@ -67,6 +66,8 @@ public class Conecta4 {
                             detailsStmt.executeUpdate();
                         }
                     }
+                    // Actualizar el idTablero
+                    this.idTablero = newIdTablero;
                 }
 
             }
@@ -194,71 +195,92 @@ public class Conecta4 {
 //        }
 //    }
 
-    public int consultarFicha(int idTablero, int fila, int columna) {
+    public int[] consultarColumna(int idTablero, int columna) {
+        int[] estadoColumna = new int[6];
+        for (int i = 0; i < 6; i++) {
+            SQL = "SELECT OcupadoJugador1, OcupadoJugador2 FROM detallestablero WHERE IdTablero=? AND Fila=? AND Columna=?";
+            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
+                preparedStatement.setInt(1, idTablero);
+                preparedStatement.setInt(2, i);
+                preparedStatement.setInt(3, columna);
 
-        SQL = "SELECT OcupadoJugador1, OcupadoJugador2 FROM detallestablero WHERE IdTablero=? AND Fila=? AND Columna=?";
-        try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-            preparedStatement.setInt(1, idTablero);
-            preparedStatement.setInt(2, fila);
-            preparedStatement.setInt(3, columna);
+                rs = preparedStatement.executeQuery();
 
-            rs = preparedStatement.executeQuery();
+                // Mueve el cursor a la primera fila
+                if (rs.next()) {
+                    int ocupado1 = rs.getInt("OcupadoJugador1");
+                    int ocupado2 = rs.getInt("OcupadoJugador2");
 
-            // Mueve el cursor a la primera fila
-            if (rs.next()) {
-                int ocupado1 = rs.getInt("OcupadoJugador1");
-                int ocupado2 = rs.getInt("OcupadoJugador2");
-
-                if (!(ocupado1 == 1 && ocupado2 == 1)) {
-                    if (ocupado1 == 1) {
-                        return 1;
-                    } else if (ocupado2 == 1) {
-                        return 2;
-                    } else {
-                        return 0;
+                    if (!(ocupado1 == 1 && ocupado2 == 1)) {// si no hay fichas de los dos jugadores
+                        if (ocupado1 == 1) {// si hay ficha del jugador 1
+                            estadoColumna[i] = 1;// se pone un 1
+                        } else if (ocupado2 == 1) {
+                            estadoColumna[i] = 2;
+                        } else {
+                            estadoColumna[i] = 0;
+                        }
                     }
                 }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
-        return -1;
-
+        return estadoColumna;
     }
 
+    public int consultarFicha(int idTablero, int fila, int columna) {
+        int[] estadoColumna = consultarColumna(idTablero, columna);
+        return estadoColumna[fila];
+    }
 
-    public void insertarFicha(int idTablero, int fila, int columna, int jugador) {
+    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2) {
         try {
             con.setAutoCommit(false);
 
-            if (consultarFicha(idTablero, fila, columna) == 0) { //para actualizar el valor y el estado en la base de datos
-                String updateSQL;
-                if (jugador == 0) {
-                    updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                } else if (jugador == 1) {
-                    updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                } else {
-                    throw new IllegalArgumentException("El jugador debe ser 0 o 1.");
+            // Calcular la fila donde se insertará la ficha
+            int fila = -1;
+            for (int i = 5; i >= 0; i--) {
+                if (consultarFicha(idTablero, i, columna) == 0) {
+                    fila = i;
+                    break;
                 }
+            }
 
-                try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
-                    preparedStatement.setInt(1, idTablero);
-                    preparedStatement.setInt(2, fila);
-                    preparedStatement.setInt(3, columna);
-                    preparedStatement.executeUpdate();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
+            // Si la columna está llena, no hacer nada
+            if (fila == -1) {
+                return fila;
+            }
+
+            // Insertar la ficha
+            String updateSQL;
+            if (!TurnoJugador2) {
+                updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+            } else {
+                updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+            }
+
+            try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
+                preparedStatement.setInt(1, idTablero);
+                preparedStatement.setInt(2, fila);
+                preparedStatement.setInt(3, columna);
+                preparedStatement.executeUpdate();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
 
             con.commit();
             con.setAutoCommit(true);
+
+            // Imprimir la información de la ficha modificada
+            System.out.println("Ficha modificada: Jugador " + (TurnoJugador2 ? "1" : "2") + ", Fila " + fila + ", Columna " + columna);
+
+            // Devolver la fila donde se insertó la ficha
+            return fila;
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
-
-    public int[][] estadoTraerTablero(int idTablero){ // metodo para recorrer el tablero entero y reutilizar en los siguientes metodos
+        public int[][] estadoTraerTablero(int idTablero){ // metodo para recorrer el tablero entero y reutilizar en los siguientes metodos
         int[][] tablero = new int[6][6];
         for (int i = 0; i < 6; i++) { // para recorrer las filas
             for (int j = 0; j < 6; j++) { // para recorrer las columnas
@@ -389,6 +411,7 @@ public class Conecta4 {
         return puntuacion;
     }
     public int getIdTablero() {
+
         return this.idTablero;
     }
 }

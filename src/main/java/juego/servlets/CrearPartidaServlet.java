@@ -28,7 +28,8 @@ public class CrearPartidaServlet extends HttpServlet {
             // Obtener el id del usuario de la sesión
 
             int usuario1 =  (int) req.getSession().getAttribute("idJugador");
-
+            //Guardar el id del jugador 1 en la sesión
+            req.getSession().setAttribute("idJugador1", usuario1);
             // Aleatorizar el turno para que bien empieze el jugador 1 o el jugador 2
             // Lógica para insertar el código de partida, jugador1 y turno en la base de datos
             // Generar un número aleatorio (0 o 1) para representar el turno inicial

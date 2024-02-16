@@ -51,15 +51,8 @@
     Class.forName("org.mariadb.jdbc.Driver");
     Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "");
 
-    //Consulta para obtener el id de la partida
-    String sql = "SELECT idPartida FROM partidas WHERE codigoPartida = ?";
-    PreparedStatement ps = con.prepareStatement(sql);
-    ps.setString(1, (String) request.getSession().getAttribute("codigoPartida"));
-    ResultSet rs = ps.executeQuery();
-    rs.next();
-    int idPartida = rs.getInt("idPartida");
-
-
+    // Obtener el id de la partida de la sesión
+    int idPartida = (int) request.getSession().getAttribute("idPartida");
     // Obtener el id del jugador de la sesión
     int idJugador = (int) request.getSession().getAttribute("idJugador");
 
@@ -67,25 +60,51 @@
     Conecta4 juego = new Conecta4(con);
     juego.crearTablero(idPartida);
     // Guardar el id del tablero en la sesión
-    int idTablero = juego.getIdTablero();
+    request.getSession().setAttribute("idTablero", juego.getIdTablero());
 
-    // El turno lo miramos por la database
+} catch (ClassNotFoundException | SQLException e) {
+    e.printStackTrace();
+}
+%>
+<%
+    int idTablero = (int) request.getSession().getAttribute("idTablero");
+    int idJugador = (int) request.getSession().getAttribute("idJugador");
+    int idJugador1 = (int) request.getSession().getAttribute("idJugador1");
+    int idJugador2 = (int) request.getSession().getAttribute("idJugador2");
     int Turno = (int) request.getSession().getAttribute("Turno");
 
 %>
 <div id="contenedor-juego">
     <h1>Conecta4 - Juego</h1>
     <%
-        for (int j = 0; j < 6; j++) {
+        if (idJugador == 0  ) { // Si es el turno del jugador 1
+            for (int j = 0; j < 6; j++) {
     %>
     <form action="InsertarFichaServlet" method="post">
         <input type="hidden" name="idJugador" value="<%= idJugador %>">
         <input type="hidden" name="columna" value="<%= j %>">
-        <input type="submit" value="Columna <%= j + 1 %>">
+        <input type="submit" value="Columna <%=j+1%>">
     </form>
     <%
         }
-        %>
+    }
+    else if (Turno == 1) { // Si es el turno del jugador 2
+        for (int j = 0; j < 6; j++) {
+    %>
+
+    <form action="InsertarFichaServlet" method="post">
+        <input type="hidden" name="idJugador" value="<%= idJugador %>">
+        <input type="hidden" name="columna" value="<%= j %>">
+        <input type="submit" value="Columna <%=j+1%>">
+    </form>
+
+    <%
+            }
+        }
+        else {
+            out.println("No es tu turno");
+        }
+    %>
 
     <div id="tablero" data-idTablero="<%=idTablero%>" data-jugador="<%=idJugador%>">
         <% for (int i = 0; i < 6; i++) { %>
@@ -101,10 +120,23 @@
 
     <p id="turnoJugador">Turno del Jugador: <%= (int) request.getSession().getAttribute("Turno") == 0 ? '1' : '2' %></p>
 </div>
-<%
-    } catch (ClassNotFoundException | SQLException e) {
-    e.printStackTrace();
+<script>
+    // Obtén los parámetros de la URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const fila = urlParams.get('fila');
+    const columna = urlParams.get('columna');
+    const idJugador = urlParams.get('idJugador');
+
+    // Selecciona la celda correspondiente en el tablero
+    const celda = document.querySelector(`#celda_${fila}_${columna}`);
+
+    // Cambia el color de la celda en función del jugador
+    if (idJugador === '1') {
+        celda.style.backgroundColor = 'red';
+    } else if (idJugador === '2') {
+        celda.style.backgroundColor = 'blue';
     }
-%>
+</script>
+
 </body>
 </html>

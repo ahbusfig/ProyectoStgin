@@ -20,33 +20,34 @@ public class InsertarFichaServlet extends  HttpServlet{
             // Crear un objeto de la clase Conecta4 para acceder a los metodos de la clase
             Conecta4 juego = new Conecta4(con);
             // Obtener los parámetros de la petición
-            int idPartida = Integer.parseInt(request.getParameter("idPartida"));
-            int idJugador = Integer.parseInt(request.getParameter("idJugador"));
+            int idTablero = Integer.parseInt(request.getParameter("idTablero"));
+
+            // obtener el idPartida de la database
+            String sqlIdPartida = "SELECT IdPartida FROM tablero WHERE IdTablero = ?";
+            PreparedStatement psIdPartida = con.prepareStatement(sqlIdPartida);
+            psIdPartida.setInt(1, idTablero);
+            ResultSet rsIdPartida = psIdPartida.executeQuery();
+            rsIdPartida.next();
+            int idPartida = rsIdPartida.getInt(1);
+            System.out.println("idPartida: " + idPartida);
+
+            //String idJugadorParam = request.getParameter("idJugador");
             int columna = Integer.parseInt(request.getParameter("columna"));
-            int fila = Integer.parseInt(request.getParameter("fila"));
+            boolean esTurnoJugador1 = Boolean.parseBoolean(request.getParameter("Turno"));
+            // Pasar string a int del idJugador
+            int idJugador =  Integer.parseInt(request.getParameter("idJugador"));
+
             // usar el método insertarFicha de la clase Conecta4
-            juego.insertarFicha(idPartida, idJugador, columna, fila);
+            int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1);
+           // Cambiar el valor de Turno en la database
+            String sql = "UPDATE partidas SET Turno = ? WHERE IdPartida = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setBoolean(1, !esTurnoJugador1);
+            ps.setInt(2, idPartida);
+            ps.executeUpdate();
 
-            // Cambiar el turno del jugador
-            String SQL = "UPDATE partida SET turno = ? WHERE idPartida = ?";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                // Si el turno actual es del jugador 1, cambia a 2, y viceversa
-                int nuevoTurno = (idJugador == 1) ? 2 : 1;
-                preparedStatement.setInt(1, nuevoTurno);
-                preparedStatement.setInt(2, idPartida);
-                preparedStatement.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-
-            // crear objeto json para la respuesta
-            String color = idJugador == 0 ? "red" : "yellow";
-            JsonObject jsonResponse = Json.createObjectBuilder()
-                    .add("color", color)
-                    .build();
-            // Enviar la respuesta
-            response.setContentType("application/json");
-            response.getWriter().println(jsonResponse.toString());
+            // Enviar a otra página y mandar los datos necesarios
+           // response.sendRedirect("mostrarTablero.jsp "); // + fila + "&columna=" + columna + "&idJugador=" + idJugador + "&codigoPartida=" + codigoPartida);
 
             // Cerrar la conexión
             con.close();
@@ -55,5 +56,3 @@ public class InsertarFichaServlet extends  HttpServlet{
         }
     }
 }
-
-
