@@ -34,19 +34,19 @@ public class TurnoEstado extends HttpServlet {
             // Logica para saber a que jugador le toca el turno
             if(Turno == 0 && idJugador == idJugador1){
                 //redirect to insertarFicha.servlet
-                res.sendRedirect("insertarFichaServlet");
+                res.sendRedirect("InsertarFichaServlet");
             }
             else if (Turno == 1 && idJugador == idJugador2){
                 //redirect to insertarFicha.servlet
-                res.sendRedirect("insertarFichaServlet");
+                res.sendRedirect("InsertarFichaServlet");
             }
             else if (Turno == 1 && idJugador == idJugador1){
                 //redirect to mostrarTablero
-                res.sendRedirect("mostrarTablero");
+                res.sendRedirect("mostrarTablero.jsp");
 
             }else if (Turno == 0 && idJugador == idJugador2){
                // redirect to mostrarTablero.
-                res.sendRedirect("mostrarTablero");
+                res.sendRedirect("mostrarTablero.jsp");
             }
             else {
                 //redirect to mostrarTablero.jsp

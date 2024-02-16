@@ -233,7 +233,7 @@ public class Conecta4 {
         return estadoColumna[fila];
     }
 
-    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2, int idJugador1, int idJugador2, int idJugador) {
+    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2, int idJugador1, int idJugador) {
         try {
             con.setAutoCommit(false);
 

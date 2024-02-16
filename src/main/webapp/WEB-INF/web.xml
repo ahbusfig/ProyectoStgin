@@ -60,15 +60,6 @@
     </servlet-mapping>
 
     <servlet>
-        <servlet-name>mostrarTablero</servlet-name>
-        <servlet-class>juego.servlets.mostrarTablero</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>mostrarTablero</servlet-name>
-        <url-pattern>/mostrarTablero</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
         <servlet-name>InsertarFicha</servlet-name>
         <servlet-class>juego.servlets.InsertarFichaServlet</servlet-class>
     </servlet>

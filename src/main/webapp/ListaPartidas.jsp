@@ -13,72 +13,98 @@
 <h2>Listado de Partidas</h2>
 
 <%
-        // Variables de conexión a la base de datos
-        String url = "jdbc:mariadb://localhost:3306/conecta4";
-        String usuario = "root";
-        String password = " ";
+    // Variables de conexión a la base de datos
+    String url = "jdbc:mariadb://localhost:3306/conecta4";
+    String usuario = "root";
+    String password = " ";
+    // String para almacenar el nombre del jugador que ha iniciado sesión
+    String nombre = (String) session.getAttribute("usuario");
 
-        // Variable para almacenar el nombre del jugador que ha iniciado sesión
-        String jugador = (String) session.getAttribute("usuario");
+    // Variable para almacenar el id del jugador que ha iniciado sesión
+    int jugador = (int) session.getAttribute("idJugador");
 
-        // Si no hay un jugador en sesión, redirigir al inicio de sesión
-        if (jugador == null) {
-            response.sendRedirect("index.html");
-        }
 
-        // Variables para almacenar el resultado de la consulta
-        ArrayList<String[]> partidas = new ArrayList<>();
-
+    // Variables para almacenar el resultado de la consulta
+    ArrayList<String[]> partidas = new ArrayList<>();
+    ArrayList<String[]> partidas2 = new ArrayList<>();
     try {
         // Conexión a la base de datos
         Class.forName("com.mysql.cj.jdbc.Driver");
         Connection con = DriverManager.getConnection(url, usuario, password);
+        Statement st = con.createStatement();
+        ResultSet rs;
 
-        // Determinar el turno del jugador -> a partir del valor de sesion de turno
-        int turno = (int) session.getAttribute("Turno");
         // Consulta SQL para obtener las partidas en las que es el turno del jugador
-        String consulta = "SELECT IdPartida, Jugador1, Jugador2, Turno FROM partidas WHERE (Jugador1 = ? OR Jugador2 = ?) AND Turno = ?";
-        PreparedStatement pstmt = con.prepareStatement(consulta);
-        pstmt.setString(1, jugador);
-        pstmt.setString(2, jugador);
-        pstmt.setInt(3, turno);
+        String consultaTeToca = "SELECT partidas.IdPartida, jugadores.idJugador, partidas.Turno FROM partidas  inner join jugadores on partidas.jugador1 = jugadores.idJugador WHERE partidas.Turno = 0 ORDER BY IdPartida asc";
+        rs = st.executeQuery(consultaTeToca);
 
-        ResultSet rs = pstmt.executeQuery();
-        // Almacenar el resultado de la consulta en el ArrayList
-        while (rs.next()) {
-            String[] partida = new String[4];
-            partida[0] = rs.getString("IdPartida");
-            partida[1] = rs.getString("Jugador1");
-            partida[2] = rs.getString("Jugador2");
-            partida[3] = rs.getString("Turno");
-            partidas.add(partida);
+
+
+
+        String consultaNoTeToca = "SELECT partidas.IdPartida, jugadores.idJugador, partidas.Turno FROM partidas  inner join jugadores on partidas.jugador1 = jugadores.idJugador where jugadores.idJugador = ? and partidas.Turno = 1";
+        PreparedStatement pstmt2 = con.prepareStatement(consultaNoTeToca);
+        pstmt2.setInt(1, jugador);
+        ResultSet rs2 = pstmt2.executeQuery(); // Modificado aquí
+
+
+    // Verificar si la consulta devuelve algo
+        if (!rs.next()) {
+            out.println("La consulta 'consultaTeToca' no devolvió ningún resultado.");
+            // Enviar al inicio
+
+        } else {
+            // La consulta devolvió al menos un resultado, puedes procesarlo aquí.
+            do {
+                String[] partida = new String[1];
+                partida[0] = rs.getString("IdPartida");
+                partidas.add(partida);
+                out.println("Resultado de consultaTeToca: " + rs.getString("IdPartida")); // Agregado aquí
+            } while (rs.next());
         }
-        pstmt.close();
+        // Almacenar el resultado de la consulta 2 en el ArrayList
+        while (rs2.next()) {
+            String[] partida = new String[1];
+            partida[0] = rs2.getString("IdPartida");
+            partidas2.add(partida);
+            out.println("Resultado de consultaNoTeToca: " + rs2.getString("IdPartida")); // Agregado aquí
+        }
+
+        //pstmt.close();
+        rs.close();
         con.close();
+        out.println(" "+nombre+" "+jugador+" ");
+        out.println(Arrays.deepToString(partidas.toArray()));
+
     } catch (Exception e) {
         e.printStackTrace();
     }
 %>
-<p>Bienvenido, <%= jugador %>!</p>
-
+<p>Bienvenido</p>
+<p>Te toca:</p>
 <table border="1">
     <tr>
         <th>IdPartida</th>
-        <th>Jugador1</th>
-        <th>Jugador2</th>
-        <th>Turno</th>
-        <th>Acción</th>
+        <th>Link</th>
     </tr>
     <% for (String[] partida : partidas) { %>
     <tr>
         <td><%= partida[0] %></td>
-        <td><%= partida[1] %></td>
-        <td><%= partida[2] %></td>
-        <td><%= partida[3] %></td>
         <td><a href="InsertarFichaServlet?IdPartida=<%= partida[0] %>">Insertar Ficha</a></td>
     </tr>
     <% } %>
 </table>
-
+<p>No te toca:</p>
+<table border="1">
+    <tr>
+        <th>IdPartida</th>
+        <th>Link</th>
+    </tr>
+    <% for (String[] partida : partidas2) { %>
+    <tr>
+        <td><%= partida[0] %></td>
+        <td><a href="InsertarFichaServlet?IdPartida=<%= partida[0] %>">Ver tablero</a></td>
+    </tr>
+    <% } %>
+</table>
 </body>
 </html>

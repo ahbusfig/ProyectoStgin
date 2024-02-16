@@ -43,15 +43,16 @@
             outline: none;
         }
     </style>
+    <!--
     <script>
-        // Función para sondear el estado cada 3 segundos
+        // Función para sondear el estado cada 1 segundos
         function verificarSegundoJugador() {
             fetch('esperarConexionServlet') // Url del servlet
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'found') {
-                        // Si se encuentra el segundo jugador, redirige al servlet TurnoEstado
-                        window.location.href = 'TurnoEstado';
+                        // Si se encuentra el segundo jugador, redirige al juego
+                        window.location.href = 'JuegoOpciones.html';
                     } else if (data.status === 'error') {
                         // Manejar el error como prefieras
                         alert('Ocurrió un error al verificar el estado del juego.');
@@ -65,12 +66,13 @@
 
         // Iniciar el sondeo cuando la página cargue
         window.onload = function() {
-            setInterval(verificarSegundoJugador, 3000); // Verifica el estado cada 3 segundos
+            setInterval(verificarSegundoJugador, 1000); // Verifica el estado cada 1 segundos
         };
     </script>
+    -->
 </head>
 <body>
-<h1>Esperando al segundo jugador...</h1>
+<h1>El codigo de Partida es :</h1>
 <%
     String codigoPartida = (String) session.getAttribute("codigoPartida");
     if (codigoPartida != null) {
@@ -87,11 +89,12 @@
         });
     }
 </script>
+
 <%
     } else {
         out.println("<p>Error: No se encontró el código de partida.</p>");
     }
 %>
-<a href="index.html" class="button">Volver a Inicio</a>
+<a href="JuegoOpciones.html" class="button">Volver a Inicio</a>
 </body>
 </html>

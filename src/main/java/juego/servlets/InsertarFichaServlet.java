@@ -36,9 +36,10 @@ public class InsertarFichaServlet extends  HttpServlet{
             boolean esTurnoJugador1 = Boolean.parseBoolean(request.getParameter("Turno"));
             // Pasar string a int del idJugador
             int idJugador =  Integer.parseInt(request.getParameter("idJugador"));
-
+            // Pasar string a int del idJugador1 de la sesion
+            int idJugador1 =  Integer.parseInt(request.getParameter("idJugador1"));
             // usar el método insertarFicha de la clase Conecta4
-            int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1);
+            int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1, idJugador1, idJugador);
            // Cambiar el valor de Turno en la database
             String sql = "UPDATE partidas SET Turno = ? WHERE IdPartida = ?";
             PreparedStatement ps = con.prepareStatement(sql);
