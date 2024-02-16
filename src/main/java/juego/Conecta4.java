@@ -233,7 +233,7 @@ public class Conecta4 {
         return estadoColumna[fila];
     }
 
-    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2) {
+    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2, int idJugador1, int idJugador2, int idJugador) {
         try {
             con.setAutoCommit(false);
 
@@ -253,10 +253,12 @@ public class Conecta4 {
 
             // Insertar la ficha
             String updateSQL;
-            if (!TurnoJugador2) {
+            if (!TurnoJugador2 && idJugador == idJugador1 ) {
                 updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+                System.out.println("Ha tirado el jugador 1" + fila + " " + columna);
             } else {
                 updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+                System.out.println("Ha tirado el jugador 2" + fila + " " + columna);
             }
 
             try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {

@@ -30,8 +30,8 @@ public class UnirsePartidaServlet extends HttpServlet{
             SQL = "UPDATE partidas SET Jugador2 = '" + usuario2 + "' WHERE CodigoPartida = '" + codigoPartida + "'";
             st.executeUpdate(SQL);
 
-            // redirigir al usuario a la página de juego
-            res.sendRedirect("conecta4Juego.jsp");
+            // redirigir al usuario al servlet TurnoEstado
+            res.sendRedirect("TurnoEstado");
 
         } catch (SQLException e) {
             e.printStackTrace();

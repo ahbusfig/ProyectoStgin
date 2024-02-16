@@ -11,38 +11,52 @@ public class TurnoEstado extends HttpServlet {
     // Los botonoes de insertar ficha estan deshabilitados en mostrarTablero.jsp pero si en insertarFichaServlet
     // Tenemos que saber -> como sacar el turno partido de la base de datos
     public void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-        // Obtener el id del jugador de la sesión
-        int idJugador = (int) req.getSession().getAttribute("idJugador");
-        // Obtener el id de la partida de la sesión
-        int idPartida = (int) req.getSession().getAttribute("idPartida");
-        // Obtener el turno de la sesión
-        int Turno = (int) req.getSession().getAttribute("Turno");
-        // Obtener el id del jugador 1 de la sesión
-        int idJugador1 = (int) req.getSession().getAttribute("idJugador1");
-        // Obtener el id del jugador 2 de la sesión
-        int idJugador2 = (int) req.getSession().getAttribute("idJugador2");
-        // Si el id del jugador es igual al id del jugador 1
-        if (idJugador == idJugador1) {
-            // Si el turno es 0
-            if (Turno == 0) {
-                // Redirigir al usuario a la página de juego
-                res.sendRedirect("mostrarTablero.jsp");
-            } else {
-                // Redirigir al usuario a la página de juego
-                res.sendRedirect("mostrarTablero.jsp");
+        Connection con ;
+        try {
+            // Obtener la conexión a la base de datos (ajusta la URL, usuario y contraseña según tu configuración)
+            Class.forName("org.mariadb.jdbc.Driver");
+            con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "");
+            // Sacar idJugador de la sesion
+            int idJugador = (int) req.getSession().getAttribute("idJugador");
+            // Sacar idJugador1 de la sesion
+            int idJugador1 = (int) req.getSession().getAttribute("idJugador1");
+            // Sacar idJugador2 de la sesion
+            int idJugador2 = (int) req.getSession().getAttribute("idJugador2");
+            // Sacar codigoPartida de la sesion
+            String codigoPartida = (String) req.getSession().getAttribute("codigoPartida");
+            // Declarar variable Turno -> Sacar de la base de datos
+            String sql = "SELECT Turno FROM partidas WHERE codigoPartida = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, codigoPartida);
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            int Turno = rs.getInt(1);
+            // Logica para saber a que jugador le toca el turno
+            if(Turno == 0 && idJugador == idJugador1){
+                //redirect to insertarFicha.servlet
+                res.sendRedirect("insertarFichaServlet");
             }
-        } else {
-            // Si el id del jugador es igual al id del jugador 2
-            if (idJugador == idJugador2) {
-                // Si el turno es 1
-                if (Turno == 1) {
-                    // Redirigir al usuario a la página de juego
-                    res.sendRedirect("mostrarTablero.jsp");
-                } else {
-                    // Redirigir al usuario a la página de juego
-                    res.sendRedirect("mostrarTablero.jsp");
-                }
+            else if (Turno == 1 && idJugador == idJugador2){
+                //redirect to insertarFicha.servlet
+                res.sendRedirect("insertarFichaServlet");
             }
+            else if (Turno == 1 && idJugador == idJugador1){
+                //redirect to mostrarTablero
+                res.sendRedirect("mostrarTablero");
+
+            }else if (Turno == 0 && idJugador == idJugador2){
+               // redirect to mostrarTablero.
+                res.sendRedirect("mostrarTablero");
+            }
+            else {
+                //redirect to mostrarTablero.jsp
+                System.out.println("Error en el turno");
+            }
+
         }
+        catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

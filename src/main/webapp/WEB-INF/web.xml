@@ -59,4 +59,30 @@
         <url-pattern>/InsertarFichaServlet</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>mostrarTablero</servlet-name>
+        <servlet-class>juego.servlets.mostrarTablero</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>mostrarTablero</servlet-name>
+        <url-pattern>/mostrarTablero</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>InsertarFicha</servlet-name>
+        <servlet-class>juego.servlets.InsertarFichaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>InsertarFicha</servlet-name>
+        <url-pattern>/InsertarFicha</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TurnoEstado</servlet-name>
+        <servlet-class>juego.servlets.TurnoEstado</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TurnoEstado</servlet-name>
+        <url-pattern>/TurnoEstado</url-pattern>
+    </servlet-mapping>
 </web-app>

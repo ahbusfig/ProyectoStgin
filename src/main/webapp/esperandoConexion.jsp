@@ -50,8 +50,8 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'found') {
-                        // Si se encuentra el segundo jugador, redirige a la página del juego
-                        window.location.href = 'conecta4Juego.jsp';
+                        // Si se encuentra el segundo jugador, redirige al servlet TurnoEstado
+                        window.location.href = 'TurnoEstado';
                     } else if (data.status === 'error') {
                         // Manejar el error como prefieras
                         alert('Ocurrió un error al verificar el estado del juego.');
