@@ -2,6 +2,7 @@
          pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
+<%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -35,41 +36,35 @@
         ResultSet rs;
 
         // Consulta SQL para obtener las partidas en las que es el turno del jugador
-        String consultaTeToca = "SELECT partidas.IdPartida, jugadores.idJugador, partidas.Turno FROM partidas  inner join jugadores on partidas.jugador1 = jugadores.idJugador WHERE partidas.Turno = 0 ORDER BY IdPartida asc";
-        rs = st.executeQuery(consultaTeToca);
+        String consultaIdPartida = "Select IdPartida from partidas where (Jugador1 =" +jugador+ " OR Jugador2=" + jugador+ ") order by IdPartida desc";
+        rs = st.executeQuery(consultaIdPartida);
 
-
-
-
-        String consultaNoTeToca = "SELECT partidas.IdPartida, jugadores.idJugador, partidas.Turno FROM partidas  inner join jugadores on partidas.jugador1 = jugadores.idJugador where jugadores.idJugador = ? and partidas.Turno = 1";
-        PreparedStatement pstmt2 = con.prepareStatement(consultaNoTeToca);
-        pstmt2.setInt(1, jugador);
-        ResultSet rs2 = pstmt2.executeQuery(); // Modificado aquí
-
-
-    // Verificar si la consulta devuelve algo
-        if (!rs.next()) {
-            out.println("La consulta 'consultaTeToca' no devolvió ningún resultado.");
-            // Enviar al inicio
-
-        } else {
-            // La consulta devolvió al menos un resultado, puedes procesarlo aquí.
-            do {
-                String[] partida = new String[1];
-                partida[0] = rs.getString("IdPartida");
-                partidas.add(partida);
-                out.println("Resultado de consultaTeToca: " + rs.getString("IdPartida")); // Agregado aquí
-            } while (rs.next());
-        }
-        // Almacenar el resultado de la consulta 2 en el ArrayList
-        while (rs2.next()) {
+        // 1. recorrer el ResultSet para obtener el id de las partida
+        while (rs.next()){
+            //Extraer el id de la partida
+            int idPartida = rs.getInt("IdPartida");
+            // 2. Consultar si es el turno del jugador usando tabla Turno
+            String consultaTeToca = "Select JUGADOR_ID from turno where PARTIDA_ID = " + idPartida + " order by TIMESTAMP desc limit 1";
+            // hacer la consulta
+            rs = st.executeQuery(consultaTeToca);//Tiene el ultimo turno
+            // Guardar en una variable y comparar idJugador para saber que jugador tiene el turno
+            int idJugador = rs.getInt("JUGADOR_ID");
+            // Comparar si el idJugador es igual al id del jugador que ha iniciado sesión y segun eso ponerla en una lista o otra
             String[] partida = new String[1];
-            partida[0] = rs2.getString("IdPartida");
-            partidas2.add(partida);
-            out.println("Resultado de consultaNoTeToca: " + rs2.getString("IdPartida")); // Agregado aquí
+            partida[0] = Integer.toString(idPartida);
+            if (idJugador == jugador){
+                // Si es igual, añadir a la lista de partidas en las que le toca
+
+                partidas.add(partida);
+            } else {
+                // Si no es igual, añadir a la lista de partidas en las que no le toca
+
+                partidas2.add(partida);
+            }
+
         }
 
-        //pstmt.close();
+
         rs.close();
         con.close();
         out.println(" "+nombre+" "+jugador+" ");
@@ -79,7 +74,7 @@
         e.printStackTrace();
     }
 %>
-<p>Bienvenido</p>
+<p>Bienvenido <%= nombre %> </p>
 <p>Te toca:</p>
 <table border="1">
     <tr>

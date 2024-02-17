@@ -4,6 +4,9 @@
 
 <web-app>
     <display-name>Archetype Created Web Application</display-name>
+    <listener>
+        <listener-class>juego.servlets.SessionCookieConfigListener</listener-class>
+    </listener>
     <!-- Servlet para registrar un usuario -->
     <servlet>
         <servlet-name>RegistrarServlet</servlet-name>
@@ -76,4 +79,6 @@
         <servlet-name>TurnoEstado</servlet-name>
         <url-pattern>/TurnoEstado</url-pattern>
     </servlet-mapping>
+
+
 </web-app>

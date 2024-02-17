@@ -41,11 +41,11 @@ public class InsertarFichaServlet extends  HttpServlet{
             // usar el método insertarFicha de la clase Conecta4
             int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1, idJugador1, idJugador);
            // Cambiar el valor de Turno en la database
-            String sql = "UPDATE partidas SET Turno = ? WHERE IdPartida = ?";
-            PreparedStatement ps = con.prepareStatement(sql);
-            ps.setBoolean(1, !esTurnoJugador1);
-            ps.setInt(2, idPartida);
-            ps.executeUpdate();
+//            String sql = "UPDATE partidas SET Turno = ? WHERE IdPartida = ?";
+//            PreparedStatement ps = con.prepareStatement(sql);
+//            ps.setBoolean(1, !esTurnoJugador1);
+//            ps.setInt(2, idPartida);
+//            ps.executeUpdate();
 
             // Enviar a otra página y mandar los datos necesarios
            // response.sendRedirect("mostrarTablero.jsp "); // + fila + "&columna=" + columna + "&idJugador=" + idJugador + "&codigoPartida=" + codigoPartida);
@@ -55,5 +55,9 @@ public class InsertarFichaServlet extends  HttpServlet{
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        doPost(req, res);
     }
 }
