@@ -13,8 +13,8 @@ public class esperarConexionServlet extends HttpServlet {
         int idPartida = (int) req.getSession().getAttribute("idPartida"); // Obtenemos el id de la partida de la sesión
 
         try (
-            // Obtener la conexión a la base de datos (ajusta la URL, usuario y contraseña según tu configuración)
-            Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "")) {
+                // Obtener la conexión a la base de datos (ajusta la URL, usuario y contraseña según tu configuración)
+                Connection con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "")) {
             Statement st = con.createStatement();
             // Lógica para comprobar si hay un segundo jugador en la partida
             String SQL = "SELECT * FROM partidas WHERE IdPartida = " + idPartida;

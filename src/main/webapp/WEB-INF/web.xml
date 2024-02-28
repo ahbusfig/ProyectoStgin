@@ -79,6 +79,22 @@
         <servlet-name>TurnoEstado</servlet-name>
         <url-pattern>/TurnoEstado</url-pattern>
     </servlet-mapping>
-
-
+    <!--Servlet para ObtenerUltimoTurnoServlet-->
+    <servlet>
+        <servlet-name>ObtenerUltimoTurnoServlet</servlet-name>
+        <servlet-class>juego.servlets.ObtenerUltimoTurnoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ObtenerUltimoTurnoServlet</servlet-name>
+        <url-pattern>/ObtenerUltimoTurnoServlet</url-pattern>
+    </servlet-mapping>
+    <!--Obtener el servlet FinPartidaServlet-->
+    <servlet>
+        <servlet-name>FinPartidaServlet</servlet-name>
+        <servlet-class>juego.servlets.FinPartidaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FinPartidaServlet</servlet-name>
+        <url-pattern>/FinPartidaServlet</url-pattern>
+    </servlet-mapping>
 </web-app>

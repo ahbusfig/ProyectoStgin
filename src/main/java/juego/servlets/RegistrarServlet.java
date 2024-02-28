@@ -15,7 +15,7 @@ public class RegistrarServlet extends HttpServlet {
         String password = request.getParameter("password");
         int edad = Integer.parseInt(request.getParameter("edad")); // el parseInt es para convertir el int a String
         String email = request.getParameter("email");
-
+        String query = "";
         try {
             // Cargar el driver JDBC y establecer conexión
             Class.forName("org.mariadb.jdbc.Driver"); // el driver es para conectarse a la base de datos (en este caso MariaDB)
@@ -23,7 +23,7 @@ public class RegistrarServlet extends HttpServlet {
 
 
             // Crear la consulta SQL
-            String query = "INSERT INTO jugadores (Nombre, email, edad, password) VALUES (?, ?, ?, ?)";
+            query = "INSERT INTO jugadores (Nombre, email, edad, password) VALUES (?, ?, ?, ?)";
             PreparedStatement ps = con.prepareStatement(query); // el prepareStatement es para preparar la consulta
 
             // Establecer los parámetros y ejecutar la actualización
@@ -38,6 +38,7 @@ public class RegistrarServlet extends HttpServlet {
         } catch(Exception e) {
             e.printStackTrace();
             out.println("Error en el registro: " + e.getMessage());
+            out.println(query);
         } finally {
             // Cerrar el flujo de salida de datos hacia el cliente
             out.close();
@@ -45,3 +46,4 @@ public class RegistrarServlet extends HttpServlet {
     }
 
 }
+

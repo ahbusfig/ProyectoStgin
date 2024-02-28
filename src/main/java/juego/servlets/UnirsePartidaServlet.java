@@ -49,7 +49,7 @@ public class UnirsePartidaServlet extends HttpServlet{
             }
 
             // redirigir al usuario al servlet TurnoEstado
-            res.sendRedirect("TurnoEstado");
+            res.sendRedirect("JuegoOpciones.html");
 
         } catch (SQLException e) {
             e.printStackTrace();

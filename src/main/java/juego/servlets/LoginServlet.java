@@ -34,9 +34,12 @@ public class LoginServlet extends HttpServlet {
                 //El usuario existe y la contraseña es correcta
                 HttpSession session = request.getSession(); // crea una sesión
                 session.setAttribute("usuario", nombre); // guarda el nombre del usuario en la sesión
+                int idJugador = rs.getInt("IdJugador");
                 session.setAttribute("idJugador", rs.getInt("IdJugador")); // guarda el id del usuario en la sesión
                 st.close();
                 con.close();
+
+
                 response.sendRedirect("JuegoOpciones.html");
             }
             else{
@@ -51,5 +54,9 @@ public class LoginServlet extends HttpServlet {
 
         out.close();
 
+    }
+    @Override
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doPost(req, resp);
     }
 }

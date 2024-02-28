@@ -18,44 +18,60 @@ public class InsertarFichaServlet extends  HttpServlet{
             Class.forName("org.mariadb.jdbc.Driver");
             con = DriverManager.getConnection("jdbc:mariadb://localhost:3306/conecta4", "root", "");
             // Crear un objeto de la clase Conecta4 para acceder a los metodos de la clase
-            Conecta4 juego = new Conecta4(con);
+            int idPartida = Integer.parseInt(request.getParameter("idPartida"));
+            String sql = "SELECT Jugador1, Jugador2 FROM partidas WHERE IdPartida = ?";
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, String.valueOf(idPartida));
+            ResultSet rs = ps.executeQuery();
+            rs.next();
+            int jugador1 = rs.getInt("Jugador1");
+            int jugador2 = rs.getInt("Jugador2");
+
+            Conecta4 juego = Conecta4.getInstance(con, idPartida, jugador1, jugador2);
             // Obtener los parámetros de la petición
             int idTablero = Integer.parseInt(request.getParameter("idTablero"));
 
             // obtener el idPartida de la database
-            String sqlIdPartida = "SELECT IdPartida FROM tablero WHERE IdTablero = ?";
-            PreparedStatement psIdPartida = con.prepareStatement(sqlIdPartida);
-            psIdPartida.setInt(1, idTablero);
-            ResultSet rsIdPartida = psIdPartida.executeQuery();
-            rsIdPartida.next();
-            int idPartida = rsIdPartida.getInt(1);
-            System.out.println("idPartida: " + idPartida);
 
             //String idJugadorParam = request.getParameter("idJugador");
             int columna = Integer.parseInt(request.getParameter("columna"));
-            boolean esTurnoJugador1 = Boolean.parseBoolean(request.getParameter("Turno"));
             // Pasar string a int del idJugador
             int idJugador =  Integer.parseInt(request.getParameter("idJugador"));
-            // Pasar string a int del idJugador1 de la sesion
-            int idJugador1 =  Integer.parseInt(request.getParameter("idJugador1"));
-            // usar el método insertarFicha de la clase Conecta4
-            int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1, idJugador1, idJugador);
-           // Cambiar el valor de Turno en la database
-//            String sql = "UPDATE partidas SET Turno = ? WHERE IdPartida = ?";
-//            PreparedStatement ps = con.prepareStatement(sql);
-//            ps.setBoolean(1, !esTurnoJugador1);
-//            ps.setInt(2, idPartida);
-//            ps.executeUpdate();
 
+            juego.insertarFicha(columna, idJugador);
+
+            // obtener el id del otro jugador
+            sql = "SELECT Jugador1, Jugador2 FROM partidas WHERE IdPartida = ?";
+            ps = con.prepareStatement(sql);
+            ps.setInt(1, idPartida);
+            rs = ps.executeQuery();
+            int other = -1;
+            while (rs.next()) {
+                if (rs.getInt("Jugador1") == idJugador) {
+                    other = rs.getInt("Jugador2");
+                } else {
+                    other = rs.getInt("Jugador1");
+                }
+            }
+
+            // usar el método insertarFicha de la clase Conecta4
+            // int fila = juego.insertarFicha(idTablero, columna, esTurnoJugador1);
+            // Cambiar el valor de Turno en la database
+            sql = "INSERT INTO TURNO (PARTIDA_ID, JUGADOR_ID, TIMESTAMP) VALUES ('" + idPartida + "', '" + other + "', CURRENT_TIMESTAMP)";
+            ps = con.prepareStatement(sql);
+            ps.executeUpdate();
+
+            con.close();
             // Enviar a otra página y mandar los datos necesarios
-           // response.sendRedirect("mostrarTablero.jsp "); // + fila + "&columna=" + columna + "&idJugador=" + idJugador + "&codigoPartida=" + codigoPartida);
+            response.sendRedirect("conecta4Juego.jsp?IdPartida="+ idPartida); // + fila + "&columna=" + columna + "&idJugador=" + idJugador + "&codigoPartida=" + codigoPartida);
 
             // Cerrar la conexión
-            con.close();
+
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         doPost(req, res);

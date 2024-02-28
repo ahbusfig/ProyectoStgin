@@ -7,6 +7,7 @@ import java.sql.*;
 import java.util.LinkedList;
 import java.util.Random;
 
+
 public class Conecta4 {
 
     Connection con;
@@ -16,10 +17,13 @@ public class Conecta4 {
     int numeroPartidas = 0;
     Random random = new Random();
     String SQL;
+    int[][] tablero = new int[6][6];
+    int idPartida;
+    int j1, j2;
 
     private int idTablero;
 
-    public Conecta4(Connection con) { // con ya esta conectado a la base de datos (conectaServlet.java)
+    private Conecta4(Connection con) { // con ya esta conectado a la base de datos (conectaServlet.java)
         try {
             this.con = con;
             this.st = con.createStatement();
@@ -27,6 +31,56 @@ public class Conecta4 {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private Conecta4(Connection con, int idPartida, int idTablero, int[][] tablero) {
+        this.con = con;
+        this.idTablero = idTablero;
+        this.tablero = tablero;
+        this.idPartida = idPartida;
+    }
+
+    public static Conecta4 getInstance(Connection con_, int idPartida, int j1, int j2) {
+        try {
+            Connection con = con_;
+            Statement st = con.createStatement();
+
+
+            // Comprobar si ya existe un tablero para la idPartida
+            String checkSQL = "SELECT IdTablero FROM tablero WHERE IdPartida = ?";
+            PreparedStatement checkStmt = con.prepareStatement(checkSQL);
+            checkStmt.setInt(1, idPartida);
+            ResultSet rs = checkStmt.executeQuery();
+
+            // Si no existe, insertar un nuevo tablero
+            if(!rs.next()) {
+                return new Conecta4(con);
+            } else {
+                int[][] tablero = new int[6][6];
+                int idTablero = -1;
+                idTablero = rs.getInt("IdTablero");
+                for (int i = 0; i < 6; i++) {
+                    for (int j = 0; j < 6; j++) {
+                        String detailsSQL = "SELECT Ocupado FROM detallestablero WHERE IdTablero = ? AND Fila = ? AND Columna = ?";
+                        PreparedStatement detailsStmt = con.prepareStatement(detailsSQL);
+                        detailsStmt.setInt(1, idTablero);
+                        detailsStmt.setInt(2, i);
+                        detailsStmt.setInt(3, j);
+                        rs = detailsStmt.executeQuery();
+                        if (rs.next()) {
+                            tablero[i][j] = rs.getInt("Ocupado") == j1 ? j1 : rs.getInt("Ocupado") == j2 ? j2 : 0;
+                        }
+                    }
+                }
+                return new Conecta4(con, idPartida, idTablero, tablero);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int getCelda(int i, int j) {
+        return tablero[i][j];
     }
 
     public void crearTablero(int idPartida) throws SQLException {
@@ -58,7 +112,7 @@ public class Conecta4 {
                     // Insertar detalles del tablero (detallestablero) con el nuevo IdTablero
                     for (int i = 0; i < 6; i++) { // para filas
                         for (int j = 0; j < 6; j++) { // para columnas
-                            String detailsSQL = "INSERT INTO detallestablero (IdTablero, OcupadoJugador1, OcupadoJugador2, Fila, Columna) VALUES (?, 0, 0, ?, ?);";
+                            String detailsSQL = "INSERT INTO detallestablero (IdTablero, Ocupado, Fila, Columna) VALUES (?, 0, ?, ?);";
                             PreparedStatement detailsStmt = con.prepareStatement(detailsSQL);
                             detailsStmt.setInt(1, newIdTablero);
                             detailsStmt.setInt(2, i);
@@ -195,52 +249,17 @@ public class Conecta4 {
 //        }
 //    }
 
-    public int[] consultarColumna(int idTablero, int columna) {
-        int[] estadoColumna = new int[6];
-        for (int i = 0; i < 6; i++) {
-            SQL = "SELECT OcupadoJugador1, OcupadoJugador2 FROM detallestablero WHERE IdTablero=? AND Fila=? AND Columna=?";
-            try (PreparedStatement preparedStatement = con.prepareStatement(SQL)) {
-                preparedStatement.setInt(1, idTablero);
-                preparedStatement.setInt(2, i);
-                preparedStatement.setInt(3, columna);
 
-                rs = preparedStatement.executeQuery();
 
-                // Mueve el cursor a la primera fila
-                if (rs.next()) {
-                    int ocupado1 = rs.getInt("OcupadoJugador1");
-                    int ocupado2 = rs.getInt("OcupadoJugador2");
 
-                    if (!(ocupado1 == 1 && ocupado2 == 1)) {// si no hay fichas de los dos jugadores
-                        if (ocupado1 == 1) {// si hay ficha del jugador 1
-                            estadoColumna[i] = 1;// se pone un 1
-                        } else if (ocupado2 == 1) {
-                            estadoColumna[i] = 2;
-                        } else {
-                            estadoColumna[i] = 0;
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        return estadoColumna;
-    }
-
-    public int consultarFicha(int idTablero, int fila, int columna) {
-        int[] estadoColumna = consultarColumna(idTablero, columna);
-        return estadoColumna[fila];
-    }
-
-    public int insertarFicha(int idTablero, int columna, boolean TurnoJugador2, int idJugador1, int idJugador) {
+    public int insertarFicha(int columna, int turno) {
         try {
             con.setAutoCommit(false);
 
             // Calcular la fila donde se insertará la ficha
             int fila = -1;
             for (int i = 5; i >= 0; i--) {
-                if (consultarFicha(idTablero, i, columna) == 0) {
+                if (tablero[i][columna] == 0) {
                     fila = i;
                     break;
                 }
@@ -252,19 +271,16 @@ public class Conecta4 {
             }
 
             // Insertar la ficha
-            String updateSQL;
-            if (!TurnoJugador2 && idJugador == idJugador1 ) {
-                updateSQL = "UPDATE detallestablero SET OcupadoJugador1 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                System.out.println("Ha tirado el jugador 1" + fila + " " + columna);
-            } else {
-                updateSQL = "UPDATE detallestablero SET OcupadoJugador2 = 1 WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
-                System.out.println("Ha tirado el jugador 2" + fila + " " + columna);
-            }
+            tablero[fila][columna] = turno;
+
+            String updateSQL = "UPDATE detallestablero SET Ocupado = ? WHERE IdTablero = ? AND Fila = ? AND Columna = ?;";
+
 
             try (PreparedStatement preparedStatement = con.prepareStatement(updateSQL)) {
-                preparedStatement.setInt(1, idTablero);
-                preparedStatement.setInt(2, fila);
-                preparedStatement.setInt(3, columna);
+                preparedStatement.setInt(1, turno);
+                preparedStatement.setInt(2, idTablero);
+                preparedStatement.setInt(3, fila);
+                preparedStatement.setInt(4, columna);
                 preparedStatement.executeUpdate();
             } catch (SQLException e) {
                 throw new RuntimeException(e);
@@ -274,7 +290,6 @@ public class Conecta4 {
             con.setAutoCommit(true);
 
             // Imprimir la información de la ficha modificada
-            System.out.println("Ficha modificada: Jugador " + (TurnoJugador2 ? "1" : "2") + ", Fila " + fila + ", Columna " + columna);
 
             // Devolver la fila donde se insertó la ficha
             return fila;
@@ -282,17 +297,17 @@ public class Conecta4 {
             throw new RuntimeException(e);
         }
     }
-        public int[][] estadoTraerTablero(int idTablero){ // metodo para recorrer el tablero entero y reutilizar en los siguientes metodos
-        int[][] tablero = new int[6][6];
-        for (int i = 0; i < 6; i++) { // para recorrer las filas
-            for (int j = 0; j < 6; j++) { // para recorrer las columnas
-                tablero[i][j] = consultarFicha(idTablero,i,j);
+
+    public boolean estaLleno() {
+        for (int i = 0; i < 6; i++) {
+            for (int j = 0; j < 6; j++) {
+                if (tablero[i][j] == 0) {
+                    return false;
+                }
             }
         }
-        return tablero;
+        return true;
     }
-
-
     public LinkedList<int[]>[] sumarPuntosAux(int[] posicion, int[][] tablero, int direccion, int jugador){ //para mirar el estado del tablero cada vez que se introduzca una ficha
         int x,y, x2, y2, x3, x4, y3, y4;
         x = posicion[0]; // fila
@@ -388,8 +403,7 @@ public class Conecta4 {
         return new LinkedList[0];
     }
 
-    public int sumarPuntos (int idTablero, int jugador, int[] posicion){
-        int[][] tablero = estadoTraerTablero(idTablero);
+   /* public int sumarPuntos (int jugador, int[] posicion){
         LinkedList<LinkedList<int[]>> solucion = new LinkedList<>();
         solucion.add(sumarPuntosAux(posicion,tablero,0,jugador)[0]);
         solucion.add(sumarPuntosAux(posicion,tablero,1,jugador)[0]);
@@ -411,6 +425,85 @@ public class Conecta4 {
             }
         }
         return puntuacion;
+    }*/
+
+
+    public int sumarPuntosHorizontales(int jugador, int fila) {
+        int nFichas = 0;
+        int i = 0;
+        while (i < 6 && tablero[fila][i] != jugador) {
+            ++i;
+        }
+
+        while (i < 6 && tablero[fila][i] == jugador) {
+            nFichas++;
+            ++i;
+        }
+
+        return nFichas == 4 ? 1 : nFichas == 5 ? 2 : nFichas == 6 ? 3 : 0;
+    }
+
+    public int sumarPuntosVerticales(int jugador, int columna) {
+        int nFichas = 0;
+        int i = 0;
+        while (i < 6 && tablero[i][columna] != jugador) {
+            ++i;
+        }
+
+        while (i < 6 && tablero[i][columna] == jugador) {
+            nFichas++;
+            ++i;
+        }
+
+        return nFichas == 4 ? 1 : nFichas == 5 ? 2 : nFichas == 6 ? 3 : 0;
+    }
+
+    public int sumarPuntosDiagonalIzq(int jugador, int[] celda) {
+        int nFichas = 0;
+        int i = celda[0];
+        int j = celda[1];
+        while (i < 6 && j >= 0 && tablero[i][j] != jugador) {
+            ++i;
+            --j;
+        }
+
+        while (i < 6 && j >= 0 && tablero[i][j] == jugador) {
+            nFichas++;
+            ++i;
+            --j;
+        }
+
+        return nFichas == 4 ? 1 : nFichas == 5 ? 2 : nFichas == 6 ? 3 : 0;
+    }
+
+    public int sumarPuntosDiagonalDch(int jugador, int[] celda) {
+        int nFichas = 0;
+        int i = celda[0];
+        int j = celda[1];
+        while (i < 6 && j < 6 && tablero[i][j] != jugador) {
+            ++i;
+            ++j;
+        }
+
+        while (i < 6 && j < 6 && tablero[i][j] == jugador) {
+            nFichas++;
+            ++i;
+            ++j;
+        }
+
+        return nFichas == 4 ? 1 : nFichas == 5 ? 2 : nFichas == 6 ? 3 : 0;
+    }
+
+    public int sumarPuntosDiagonales(int jugador, int[] celda) {
+        int nFichas = 0;
+        int i = celda[0];
+        int j = celda[1];
+
+        return sumarPuntosDiagonalIzq(jugador, celda) + sumarPuntosDiagonalDch(jugador, celda);
+    }
+
+    public int sumarPuntos(int jugador, int[] celda) {
+        return sumarPuntosHorizontales(jugador, celda[0]);
     }
     public int getIdTablero() {
 

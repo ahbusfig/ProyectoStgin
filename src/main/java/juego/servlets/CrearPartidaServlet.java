@@ -30,6 +30,14 @@ public class CrearPartidaServlet extends HttpServlet {
             int usuario1 =  (int) req.getSession().getAttribute("idJugador");
             //Guardar el id del jugador 1 en la sesión
             req.getSession().setAttribute("idJugador1", usuario1);
+            // Aleatorizar el turno para que bien empieze el jugador 1 o el jugador 2
+            // Lógica para insertar el código de partida, jugador1 y turno en la base de datos
+            // Generar un número aleatorio (0 o 1) para representar el turno inicial
+
+            // si es 0 el turno es del jugador 1 si es 1 el turno es del jugador 2
+            // Guardar el turno en la sesión
+
+
 
             // Lógica para insertar el código de partida,jugador1 y turno en la base de datos
             SQL = "INSERT INTO partidas (Jugador1, Jugador2, CodigoPartida) VALUES ('" + usuario1 + "', NULL, " + codigoPartida + ")";
@@ -59,6 +67,11 @@ public class CrearPartidaServlet extends HttpServlet {
         } finally {
             out.close();
         }
+    }
+
+    @Override
+    public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        doPost(req, resp);
     }
 }
 

@@ -2,7 +2,6 @@
          pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%@ page import="java.util.*" %>
-<%@ page import="java.io.PrintWriter" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -17,74 +16,79 @@
     // Variables de conexión a la base de datos
     String url = "jdbc:mariadb://localhost:3306/conecta4";
     String usuario = "root";
-    String password = " ";
-    // String para almacenar el nombre del jugador que ha iniciado sesión
-    String nombre = (String) session.getAttribute("usuario");
+    String password = "";
 
-    // Variable para almacenar el id del jugador que ha iniciado sesión
-    int jugador = (int) session.getAttribute("idJugador");
+    // Variable para almacenar el nombre del jugador que ha iniciado sesión
+    String jugador = (String) session.getAttribute("usuario");
 
+
+    // Si no hay un jugador en sesión, redirigir al inicio de sesión
+    if (jugador == null) {
+        response.sendRedirect("index.html");
+    }
 
     // Variables para almacenar el resultado de la consulta
-    ArrayList<String[]> partidas = new ArrayList<>();
+    ArrayList<String[]> partidas1 = new ArrayList<>();
     ArrayList<String[]> partidas2 = new ArrayList<>();
+    ArrayList<String[]> partidas3 = new ArrayList<>();
+
+    int idJugador;
     try {
         // Conexión a la base de datos
-        Class.forName("com.mysql.cj.jdbc.Driver");
+        Class.forName("org.mariadb.jdbc.Driver");
         Connection con = DriverManager.getConnection(url, usuario, password);
-        Statement st = con.createStatement();
-        ResultSet rs;
-
-        // Consulta SQL para obtener las partidas en las que es el turno del jugador
-        String consultaIdPartida = "Select IdPartida from partidas where (Jugador1 =" +jugador+ " OR Jugador2=" + jugador+ ") order by IdPartida desc";
-        rs = st.executeQuery(consultaIdPartida);
-
-        // 1. recorrer el ResultSet para obtener el id de las partida
-        while (rs.next()){
-            //Extraer el id de la partida
+        String sql = "SELECT IdJugador FROM jugadores WHERE Nombre = ?";
+        PreparedStatement pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, jugador);
+        ResultSet rs = pstmt.executeQuery();
+        rs.next();
+        idJugador = rs.getInt("IdJugador");
+        sql = "SELECT IdPartida FROM partidas WHERE Jugador1 = ? OR Jugador2 = ?";
+        pstmt = con.prepareStatement(sql);
+        pstmt.setString(1, String.valueOf(idJugador));
+        pstmt.setString(2, String.valueOf(idJugador));
+        rs = pstmt.executeQuery();
+        while (rs.next()) {
             int idPartida = rs.getInt("IdPartida");
-            // 2. Consultar si es el turno del jugador usando tabla Turno
-            String consultaTeToca = "Select JUGADOR_ID from turno where PARTIDA_ID = " + idPartida + " order by TIMESTAMP desc limit 1";
-            // hacer la consulta
-            rs = st.executeQuery(consultaTeToca);//Tiene el ultimo turno
-            // Guardar en una variable y comparar idJugador para saber que jugador tiene el turno
-            int idJugador = rs.getInt("JUGADOR_ID");
-            // Comparar si el idJugador es igual al id del jugador que ha iniciado sesión y segun eso ponerla en una lista o otra
-            String[] partida = new String[1];
-            partida[0] = Integer.toString(idPartida);
-            if (idJugador == jugador){
-                // Si es igual, añadir a la lista de partidas en las que le toca
-
-                partidas.add(partida);
+            String sql2 = "SELECT JUGADOR_ID FROM TURNO WHERE PARTIDA_ID = ? ORDER BY TIMESTAMP DESC LIMIT 1";
+            PreparedStatement pstmt2 = con.prepareStatement(sql2);
+            pstmt2.setInt(1, idPartida);
+            ResultSet rs2 = pstmt2.executeQuery();
+            if(!rs2.next()) {
+                partidas3.add(new String[]{Integer.toString(idPartida)});
+                continue;
+            }
+            String jugador1 = rs2.getString("JUGADOR_ID");
+            if (Integer.parseInt(jugador1) == idJugador) {
+                String[] partida = new String[1];
+                partida[0] = Integer.toString(idPartida);
+                partidas1.add(partida);
             } else {
-                // Si no es igual, añadir a la lista de partidas en las que no le toca
-
+                String[] partida = new String[1];
+                partida[0] = Integer.toString(idPartida);
                 partidas2.add(partida);
             }
-
         }
+        // Almacenar el resultado de la consulta en el ArrayList
 
-
-        rs.close();
+        pstmt.close();
         con.close();
-        out.println(" "+nombre+" "+jugador+" ");
-        out.println(Arrays.deepToString(partidas.toArray()));
-
     } catch (Exception e) {
         e.printStackTrace();
     }
 %>
-<p>Bienvenido <%= nombre %> </p>
-<p>Te toca:</p>
+<p>Bienvenido, <%= jugador %>!</p>
+
+<<p>Te toca:</p>
 <table border="1">
     <tr>
         <th>IdPartida</th>
         <th>Link</th>
     </tr>
-    <% for (String[] partida : partidas) { %>
+    <% for (String[] partida : partidas1) { %>
     <tr>
         <td><%= partida[0] %></td>
-        <td><a href="InsertarFichaServlet?IdPartida=<%= partida[0] %>">Insertar Ficha</a></td>
+        <td><a href="conecta4Juego.jsp?IdPartida=<%= partida[0] %>">Insertar Ficha</a></td>
     </tr>
     <% } %>
 </table>
@@ -97,7 +101,18 @@
     <% for (String[] partida : partidas2) { %>
     <tr>
         <td><%= partida[0] %></td>
-        <td><a href="InsertarFichaServlet?IdPartida=<%= partida[0] %>">Ver tablero</a></td>
+        <td><a href="conecta4Juego.jsp?IdPartida=<%= partida[0] %>">Ver tablero</a></td>
+    </tr>
+    <% } %>
+</table>
+<p>Partidas sin empezar:</p>
+<table border="1">
+    <tr>
+        <th>IdPartida</th>
+    </tr>
+    <% for (String[] partida : partidas3) { %>
+    <tr>
+        <td><%= partida[0] %></td>
     </tr>
     <% } %>
 </table>
